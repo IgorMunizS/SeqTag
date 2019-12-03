@@ -8,7 +8,7 @@ def evaluate(model,X_train,y_train, tags, label_encoder):
 
     X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, train_size=0.9, random_state=233)
 
-    val_generator = DataGenerator(X_test, y_test, tags, batch_size=1, shuffle=False)
+    val_generator = DataGenerator(X_test[:10240], y_test[:10240], tags, batch_size=128, shuffle=False)
 
     y_pred = model.predict_generator(
         val_generator,
@@ -19,11 +19,15 @@ def evaluate(model,X_train,y_train, tags, label_encoder):
     y_pred = np.argmax(y_pred, axis=-1)
     y_test = np.argmax(y_test, -1)
 
+    y_pred = y_pred.flatten()
+    y_test = y_test.flatten()
+
     y_pred = label_encoder.inverse_transform(y_pred)
     y_test = label_encoder.inverse_transform(y_test)
 
     y_pred = y_pred[y_pred != config.pad_seq_tag]
     y_test = y_test[y_test != config.pad_seq_tag]
+
 
     print("ACC-score is : {:.1%}".format(accuracy_score(y_test, y_pred)))
     print("BACC-score is : {:.1%}".format(balanced_accuracy_score(y_test, y_pred)))

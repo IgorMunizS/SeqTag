@@ -28,40 +28,40 @@ def __training(X_train,y_train,max_features,maxlen,embedding_matrix,embed_size,t
 
     model, crf = get_model(maxlen,max_features,embed_size,embedding_matrix,len(tags))
 
-    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, train_size=0.9, random_state=233)
-
-
-    train_generator = DataGenerator(X_train, y_train, tags, batch_size=config.batch_size)
-
-    val_generator = DataGenerator(X_val, y_train, tags, batch_size=config.batch_size, shuffle=False)
-
-
-    opt = Adam(lr=0.001)
-
-    model.compile(loss=crf.loss_function, optimizer=opt, metrics=[crf.accuracy])
-
-
-    filepath = '../models/' + 'best_model'
-    ckp = ModelCheckpoint(filepath + '.h5', monitor='val_loss', verbose=1, save_best_only=True, mode='min',
-                          save_weights_only=True)
-
-    es = EarlyStopping(monitor='val_loss', min_delta=0.00001, patience=5, verbose=1, mode='min')
-    # rlr = ReduceLROnPlateau(monitor='val_f1-score', factor=0.2, patience=3, verbose=1, mode='max', min_delta=0.0001)
-    # swa = SWA('../models/best_' + str(smmodel) + '_' + str(backbone) + '_' + str(n_fold) + '_swa.h5', 10)
-
-    # clr = CyclicLR(base_lr=0.0003, max_lr=0.001,
-    #                step_size=35000, reduce_on_plateau=1, monitor='val_loss', reduce_factor=10)
-
-    callbacks_list = [ckp, es]
-
-    print("Treinando")
-
-    model.fit_generator(generator=train_generator,
-                        validation_data=val_generator,
-                        callbacks=callbacks_list,
-                        epochs=config.nepochs,
-                        use_multiprocessing=True,
-                        workers=42)
+    # X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, train_size=0.9, random_state=233)
+    #
+    #
+    # train_generator = DataGenerator(X_train, y_train, tags, batch_size=config.batch_size)
+    #
+    # val_generator = DataGenerator(X_val, y_train, tags, batch_size=config.batch_size, shuffle=False)
+    #
+    #
+    # opt = Adam(lr=0.001)
+    #
+    # model.compile(loss=crf.loss_function, optimizer=opt, metrics=[crf.accuracy])
+    #
+    #
+    # filepath = '../models/' + 'best_model'
+    # ckp = ModelCheckpoint(filepath + '.h5', monitor='val_loss', verbose=1, save_best_only=True, mode='min',
+    #                       save_weights_only=True)
+    #
+    # es = EarlyStopping(monitor='val_loss', min_delta=0.00001, patience=5, verbose=1, mode='min')
+    # # rlr = ReduceLROnPlateau(monitor='val_f1-score', factor=0.2, patience=3, verbose=1, mode='max', min_delta=0.0001)
+    # # swa = SWA('../models/best_' + str(smmodel) + '_' + str(backbone) + '_' + str(n_fold) + '_swa.h5', 10)
+    #
+    # # clr = CyclicLR(base_lr=0.0003, max_lr=0.001,
+    # #                step_size=35000, reduce_on_plateau=1, monitor='val_loss', reduce_factor=10)
+    #
+    # callbacks_list = [ckp, es]
+    #
+    # print("Treinando")
+    #
+    # model.fit_generator(generator=train_generator,
+    #                     validation_data=val_generator,
+    #                     callbacks=callbacks_list,
+    #                     epochs=config.nepochs,
+    #                     use_multiprocessing=True,
+    #                     workers=42)
 
     return model
 
@@ -120,7 +120,7 @@ def training(train,test,original_train):
     embed_size = config.glove_size + config.char_size
 
     model = __training(X_train,y_train,max_features,maxlen,embedding_matrix,embed_size,tags)
-
+    model.load_weights('../models/best_model.h5')
     evaluate(model, X_train, y_train, tags, label_encoder)
 
 
