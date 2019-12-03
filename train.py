@@ -22,6 +22,7 @@ from keras.preprocessing import sequence
 from utils.utils import pad_tokens
 from sklearn.feature_extraction.text import HashingVectorizer
 import config
+from evaluation import evaluate
 
 def __training(X_train,y_train,max_features,maxlen,embedding_matrix,embed_size,tags):
 
@@ -58,11 +59,11 @@ def __training(X_train,y_train,max_features,maxlen,embedding_matrix,embed_size,t
     model.fit_generator(generator=train_generator,
                         validation_data=val_generator,
                         callbacks=callbacks_list,
-                        epochs=50,
+                        epochs=config.nepochs,
                         use_multiprocessing=True,
                         workers=42)
 
-
+    return model
 
 def training(train,test,original_train):
 
@@ -118,7 +119,9 @@ def training(train,test,original_train):
     embedding_matrix = np.concatenate((glove_embedding_matrix, char_embedding), axis=1)
     embed_size = config.glove_size + config.char_size
 
-    __training(X_train,y_train,max_features,maxlen,embedding_matrix,embed_size,tags)
+    model = __training(X_train,y_train,max_features,maxlen,embedding_matrix,embed_size,tags)
+
+    evaluate(model, X_train, y_train, tags, label_encoder)
 
 
 def parse_args(args):

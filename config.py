@@ -23,7 +23,7 @@ char_size = 100
 
 # training
 train_embeddings    = False
-nepochs             = 30
+nepochs             = 1
 dropout             = 0.3
 batch_size          = 32
 lr_method           = "adam"
