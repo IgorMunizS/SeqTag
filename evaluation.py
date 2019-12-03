@@ -17,11 +17,12 @@ def evaluate(model,X_train,y_train, tags, label_encoder):
     )
 
     y_pred = np.argmax(y_pred, axis=-1)
-    y_test = np.argmax(y_test, -1)
+    # y_test = np.argmax(y_test, axis=-1)
 
     y_pred = y_pred.flatten()
     y_test = y_test.flatten()
-
+    print(y_pred.shape)
+    print(y_test.shape)
     y_pred = label_encoder.inverse_transform(y_pred)
     y_test = label_encoder.inverse_transform(y_test)
 
