@@ -31,6 +31,7 @@ from anago.utils import NERSequence
 from anago.callbacks import F1score
 from anago.utils import filter_embeddings
 from utils.utils import f1_keras
+from anago.layers import crf_viterbi_accuracy
 
 def training(train,test):
     x_train = [x.split() for x in train['sentence'].tolist()]
@@ -61,7 +62,7 @@ def training(train,test):
 
     opt = Adam(lr=0.001)
     model, loss = model.build()
-    model.compile(loss=loss, optimizer=opt, metrics=[f1_keras])
+    model.compile(loss=loss, optimizer=opt, metrics=[crf_viterbi_accuracy])
 
     filepath = '../models/' + 'best_model'
     ckp = ModelCheckpoint(filepath + '.h5', monitor='val_loss', verbose=1, save_best_only=True, mode='min',
