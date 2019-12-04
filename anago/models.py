@@ -109,7 +109,7 @@ class BiLSTMCRF(object):
 
         word_embeddings = Dropout(self._dropout)(word_embeddings)
         z = Bidirectional(CuDNNLSTM(units=self._word_lstm_size, return_sequences=True))(word_embeddings)
-        z = Conv1D(100,kernel_size=2, padding="valid", kernel_initializer="he_uniform")(z)
+        # z = Conv1D(100,kernel_size=2, padding="valid", kernel_initializer="he_uniform")(z)
         z = Dense(self._fc_dim, activation='tanh')(z)
         # z = Dropout(self._dropout)(z)
 
