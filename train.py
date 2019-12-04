@@ -139,6 +139,7 @@ def parse_args(args):
 
 
     parser.add_argument('--model', help='Local of training', default='normal')
+    parser.add_argument("--cpu", default=False, type=bool)
 
 
 
@@ -148,6 +149,11 @@ def parse_args(args):
 if __name__ == '__main__':
     args = sys.argv[1:]
     args = parse_args(args)
+    import os
+
+    if args.cpu:
+        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"  # see issue #152
+        os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
     original_train = pd.read_csv(config.original_data_folder + 'train.conll', sep=' ', names=['Word', 'PoS', 'Tag'])
     train = pd.read_csv(config.data_folder + "train.csv", converters={"pos": literal_eval, "tag": literal_eval})
