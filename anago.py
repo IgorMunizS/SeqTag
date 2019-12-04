@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from keras.callbacks import EarlyStopping,ModelCheckpoint,ReduceLROnPlateau, LearningRateScheduler
-from keras.optimizers import Adam, Nadam
+from keras.optimizers import Adam, Nadam, SGD
 from sklearn.model_selection import train_test_split
 from keras_radam import RAdam
 from ast import literal_eval
@@ -44,7 +44,7 @@ def training(train,test):
     p = IndexTransformer(use_char=True)
     p.fit(x_train, y_train)
 
-    embeddings = load_glove(config.glove_file)
+    embeddings = load_glove(config.fasttext_file)
     embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
 
     model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
@@ -53,23 +53,23 @@ def training(train,test):
                       word_embedding_dim=300,
                       char_embedding_dim=100,
                       word_lstm_size=100,
-                      char_lstm_size=300,
+                      char_lstm_size=50,
                       fc_dim=100,
                       dropout=0.5,
                       embeddings=embeddings,
                       use_char=True,
                       use_crf=True)
 
-    opt = Adam(lr=0.001)
+    opt = SGD(lr=0.01, clipnorm=5.)
     model, loss = model.build()
     model.compile(loss=loss, optimizer=opt, metrics=[crf_viterbi_accuracy])
 
     filepath = '../models/' + 'best_model'
-    ckp = ModelCheckpoint(filepath + '.h5', monitor='val_loss', verbose=1, save_best_only=True, mode='min',
+    ckp = ModelCheckpoint(filepath + '.h5', monitor='val_crf_viterbi_accuracy', verbose=1, save_best_only=True, mode='max',
                           save_weights_only=True)
 
-    es = EarlyStopping(monitor='val_loss', min_delta=0.00001, patience=3, verbose=1, mode='min')
-    rlr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, verbose=1, mode='min', min_delta=0.0001)
+    es = EarlyStopping(monitor='val_crf_viterbi_accuracy', min_delta=0.00001, patience=3, verbose=1, mode='max')
+    rlr = ReduceLROnPlateau(monitor='val_crf_viterbi_accuracy', factor=0.2, patience=2, verbose=1, mode='max', min_delta=0.0001)
 
     callbacks = [ckp, es, rlr]
 
