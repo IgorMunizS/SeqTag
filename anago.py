@@ -34,8 +34,8 @@ from anago.utils import filter_embeddings
 
 
 def training(train,test):
-    x_train = [x.split() for x in train['sentence'].tolist()][:1000]
-    y_train = train['tag'].tolist()[:1000]
+    x_train = [x.split() for x in train['sentence'].tolist()]
+    y_train = train['tag'].tolist()
 
     x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, train_size=0.8, random_state=233)
 
@@ -62,13 +62,13 @@ def training(train,test):
 
     opt = Adam(lr=0.001)
     model, loss = model.build()
-    model.compile(loss=loss, optimizer=opt)
+    model.compile(loss=loss, optimizer=opt, metrics=['accuracy'])
 
     filepath = '../models/' + 'best_model'
     ckp = ModelCheckpoint(filepath + '.h5', monitor='val_loss', verbose=1, save_best_only=True, mode='min',
                           save_weights_only=True)
 
-    es = EarlyStopping(monitor='val_loss', min_delta=0.00001, patience=5, verbose=1, mode='min')
+    es = EarlyStopping(monitor='val_loss', min_delta=0.00001, patience=3, verbose=1, mode='min')
 
     callbacks = [ckp, es]
 
@@ -78,7 +78,7 @@ def training(train,test):
     if x_val and y_val:
         valid_seq = NERSequence(x_val, y_val, config.batch_size, p.transform)
         f1 = F1score(valid_seq, preprocessor=p)
-        callbacks = [f1] + callbacks if callbacks else [f1]
+        callbacks.append(f1)
 
     model.fit_generator(generator=train_seq,
                               epochs=config.nepochs,
