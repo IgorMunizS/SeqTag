@@ -69,8 +69,9 @@ def training(train,test):
                           save_weights_only=True)
 
     es = EarlyStopping(monitor='val_loss', min_delta=0.00001, patience=3, verbose=1, mode='min')
+    rlr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=2, verbose=1, mode='min', min_delta=0.0001)
 
-    callbacks = [ckp, es]
+    callbacks = [ckp, es, rlr]
 
     train_seq = NERSequence(x_train, y_train, config.batch_size, p.transform)
 
