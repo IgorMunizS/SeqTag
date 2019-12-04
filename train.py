@@ -103,9 +103,7 @@ def training(train,test):
                               epochs=config.nepochs,
                               callbacks=callbacks,
                               verbose=True,
-                              shuffle=True,
-                              use_multiprocessing=True,
-                              workers=8)
+                              shuffle=True)
 
     p.save('../models/best_transform.it')
     predict(model, p , x_test)

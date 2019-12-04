@@ -185,7 +185,6 @@ class ELModel(object):
         char_embeddings = Embedding(input_dim=self._char_vocab_size,
                                     output_dim=self._char_embedding_dim,
                                     mask_zero=True,
-                                    trainable=False,
                                     name='char_embedding')(char_ids)
         char_embeddings = TimeDistributed(Bidirectional(LSTM(self._char_lstm_size)))(char_embeddings)
 
