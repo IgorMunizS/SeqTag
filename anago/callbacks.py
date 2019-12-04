@@ -44,8 +44,8 @@ class F1score(Callback):
 
         print(classification_report(label_true, label_pred))
 
-        label_true = np.array(label_true).flatten()
-        label_pred = np.array(label_pred).flatten()
+        label_true = [item for sublist in label_true for item in sublist]
+        label_pred = [item for sublist in label_pred for item in sublist]
         classes = np.unique(label_true)
         classes2 = np.unique(label_pred)
 
