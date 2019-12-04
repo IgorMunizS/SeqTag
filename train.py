@@ -34,7 +34,7 @@ def __training(X_train,y_train,max_features,maxlen,embedding_matrix,embed_size,t
 
     model, crf = get_model(maxlen,max_features,embed_size,embedding_matrix,len(tags))
 
-    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, train_size=0.9, random_state=233)
+    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, train_size=0.8, random_state=233)
 
 
     train_generator = DataGenerator(X_train, y_train, tags, batch_size=config.batch_size)
@@ -42,7 +42,7 @@ def __training(X_train,y_train,max_features,maxlen,embedding_matrix,embed_size,t
     val_generator = DataGenerator(X_val, y_train, tags, batch_size=config.batch_size, shuffle=False)
 
 
-    opt = Adam(lr=0.001)
+    opt = Adam(lr=0.0001)
 
     model.compile(loss=crf.loss_function, optimizer=opt, metrics=[crf.accuracy])
 
@@ -58,9 +58,9 @@ def __training(X_train,y_train,max_features,maxlen,embedding_matrix,embed_size,t
     # clr = CyclicLR(base_lr=0.0003, max_lr=0.001,
     #                step_size=35000, reduce_on_plateau=1, monitor='val_loss', reduce_factor=10)
 
-    bacc = BACCscore(val_generator, config.batch_size, label_encoder)
+    # bacc = BACCscore(val_generator, config.batch_size, label_encoder)
 
-    callbacks_list = [ckp, es, bacc]
+    callbacks_list = [ckp, es]
 
     print("Treinando")
 
