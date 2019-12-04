@@ -194,6 +194,7 @@ class ELModel(object):
         word_embeddings = Dropout(self._dropout)(word_embeddings)
         z = Bidirectional(LSTM(units=self._word_lstm_size, return_sequences=True))(word_embeddings)
         z = Dense(self._fc_dim, activation='tanh')(z)
+        z = Dropout(self._dropout)(z)
 
         crf = CRF(self._num_labels, sparse_target=False)
         loss = crf.loss_function

@@ -23,8 +23,8 @@ from sklearn.feature_extraction.text import HashingVectorizer
 import config
 from evaluation import evaluate
 from anago.utils import load_data_and_labels, load_glove
-from anago.models import BiLSTMCRF
-from anago.preprocessing import IndexTransformer
+from anago.models import BiLSTMCRF, ELModel
+from anago.preprocessing import IndexTransformer, ELMoTransformer
 from anago.trainer import Trainer
 from utils.callbacks import BACCscore
 from anago.utils import NERSequence
@@ -40,7 +40,7 @@ def training(train,test):
     x_test = [x.split() for x in test['sentence'].tolist()]
 
     print('Transforming datasets...')
-    p = IndexTransformer(use_char=True)
+    p = ELMoTransformer(use_char=True)
     p.fit(x_train + x_test, y_train)
 
     x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, train_size=0.8, random_state=233)
@@ -49,7 +49,7 @@ def training(train,test):
 
     embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
 
-    model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
+    model = ELModel(char_vocab_size=p.char_vocab_size,
                       word_vocab_size=p.word_vocab_size,
                       num_labels=p.label_size,
                       word_embedding_dim=300,
@@ -58,9 +58,9 @@ def training(train,test):
                       char_lstm_size=50,
                       fc_dim=100,
                       dropout=0.5,
-                      embeddings=embeddings,
-                      use_char=True,
-                      use_crf=True)
+                      embeddings=embeddings)
+                      # use_char=True,
+                      # use_crf=True)
 
     opt = Adam(lr=0.001)
     model, loss = model.build()

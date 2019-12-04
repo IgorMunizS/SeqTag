@@ -15,10 +15,10 @@ def build_submission(y_pred):
 def predict(model, p, x_test):
     lengths = map(len, x_test)
     x_test = p.transform(x_test)
-    y_pred = model.predict(x_test)
+    y_pred = model.predict(x_test,
+                           verbose=True)
     y_pred = p.inverse_transform(y_pred, lengths)
 
-    print(y_pred)
     build_submission(y_pred)
     return y_pred
 
