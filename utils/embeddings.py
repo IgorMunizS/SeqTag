@@ -20,7 +20,7 @@ def meta_embedding(tok,embedding_file,max_features,embed_size,lang='portuguese')
 
     word_index = tok.word_index
     word_index[config.pad_seq_tag] = 0
-    word_index[config.unk_token] = 999999
+    # word_index[config.unk_token] = 999999
 
     # prepare embedding matrix
     num_words = min(max_features, len(word_index) + 1)
@@ -33,7 +33,7 @@ def meta_embedding(tok,embedding_file,max_features,embed_size,lang='portuguese')
     for key, i in word_index.items():
         if i >= max_features:
             continue
-        if key == 0: #pad
+        if i == 0: #pad
             embedding_matrix[i] = pad_vector
             continue
 

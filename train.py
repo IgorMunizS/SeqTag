@@ -30,7 +30,7 @@ from anago.trainer import Trainer
 from utils.callbacks import BACCscore
 from anago.utils import NERSequence
 
-def __training(X_train,y_train,max_features,maxlen,embedding_matrix,embed_size,tags):
+def __training(X_train,y_train,max_features,maxlen,embedding_matrix,embed_size,tags, label_encoder):
 
     model, crf = get_model(maxlen,max_features,embed_size,embedding_matrix,len(tags))
 
@@ -58,7 +58,7 @@ def __training(X_train,y_train,max_features,maxlen,embedding_matrix,embed_size,t
     # clr = CyclicLR(base_lr=0.0003, max_lr=0.001,
     #                step_size=35000, reduce_on_plateau=1, monitor='val_loss', reduce_factor=10)
 
-    bacc = BACCscore()
+    bacc = BACCscore(val_generator, config.batch_size, label_encoder)
 
     callbacks_list = [ckp, es, bacc]
 
@@ -114,20 +114,20 @@ def training(train,test,original_train):
     y_train = pad_tokens(y_train, maxlen, label_encoder)
 
     # Generate char embedding without preprocess
-    text = (train['sentence'].tolist() + test["sentence"].tolist())
-    char_vectorizer = CharVectorizer(max_features,text)
-    char_embed_size = char_vectorizer.embed_size
+    # text = (train['sentence'].tolist() + test["sentence"].tolist())
+    # char_vectorizer = CharVectorizer(max_features,text)
+    # char_embed_size = char_vectorizer.embed_size
     #
     glove_embedding_matrix = meta_embedding(tok,config.glove_file,max_features,config.glove_size)
     # fast_embedding_matrix = meta_embedding(tok, max_features, embed_size)
     #
-    char_embedding = char_vectorizer.get_char_embedding(tok)
+    # char_embedding = char_vectorizer.get_char_embedding(tok)
     #
     #
-    embedding_matrix = np.concatenate((glove_embedding_matrix, char_embedding), axis=1)
-    embed_size = config.glove_size + config.char_size
+    # embedding_matrix = np.concatenate((glove_embedding_matrix, char_embedding), axis=1)
+    embed_size = config.glove_size
 
-    model = __training(X_train,y_train,max_features,maxlen,embedding_matrix,embed_size,tags)
+    model = __training(X_train,y_train,max_features,maxlen,glove_embedding_matrix,embed_size,tags, label_encoder)
     model.load_weights('../models/best_model.h5')
     evaluate(model, X_train, y_train, tags, label_encoder)
 
