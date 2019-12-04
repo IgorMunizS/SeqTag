@@ -62,7 +62,7 @@ def training(train,test):
 
     opt = Adam(lr=0.001)
     model, loss = model.build()
-    model.compile(loss=loss, optimizer=opt, metrics=['accuracy'])
+    model.compile(loss=loss, optimizer=opt)
 
     filepath = '../models/' + 'best_model'
     ckp = ModelCheckpoint(filepath + '.h5', monitor='val_loss', verbose=1, save_best_only=True, mode='min',
