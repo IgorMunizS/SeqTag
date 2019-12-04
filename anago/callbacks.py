@@ -47,14 +47,14 @@ class F1score(Callback):
         label_true = [item for sublist in label_true for item in sublist]
         label_pred = [item for sublist in label_pred for item in sublist]
         classes = np.unique(label_true)
-        classes2 = np.unique(label_pred)
-
-        print('Classes: ', classes, classes2)
+        # classes2 = np.unique(label_pred)
+        #
+        # print('Classes: ', classes, classes2)
 
         score = balanced_accuracy_score(label_true, label_pred)
         print(' - BACC: {:04.2f}'.format(score * 100))
 
-        score = f1(label_true, label_pred)
+        score = f1(label_true, label_pred, average='micro')
         print(' - f1: {:04.2f}'.format(score * 100))
 
         print(clsrep(label_true, label_pred, labels=classes))
