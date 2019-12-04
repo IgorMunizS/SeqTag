@@ -34,8 +34,8 @@ from anago.utils import filter_embeddings
 
 
 def training(train,test):
-    x_train = [x.split() for x in train['sentence'].tolist()]
-    y_train = train['tag'].tolist()
+    x_train = [x.split() for x in train['sentence'].tolist()][:1000]
+    y_train = train['tag'].tolist()[:1000]
 
     x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, train_size=0.8, random_state=233)
 
