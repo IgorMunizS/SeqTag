@@ -3,7 +3,7 @@ Model definition.
 """
 import json
 
-from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, TimeDistributed
+from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, TimeDistributed, Conv1D
 from keras.layers.merge import Concatenate
 from keras.models import Model, model_from_json
 
@@ -91,6 +91,7 @@ class BiLSTMCRF(object):
             word_embeddings = Embedding(input_dim=self._embeddings.shape[0],
                                         output_dim=self._embeddings.shape[1],
                                         mask_zero=True,
+                                        trainable=False,
                                         weights=[self._embeddings],
                                         name='word_embedding')(word_ids)
 
@@ -107,8 +108,9 @@ class BiLSTMCRF(object):
 
         word_embeddings = Dropout(self._dropout)(word_embeddings)
         z = Bidirectional(LSTM(units=self._word_lstm_size, return_sequences=True))(word_embeddings)
+        z = Conv1D(100,kernel_size=2, padding="valid", kernel_initializer="he_uniform")(z)
         z = Dense(self._fc_dim, activation='tanh')(z)
-        z = Dropout(self._dropout)(z)
+        # z = Dropout(self._dropout)(z)
 
         if self._use_crf:
             crf = CRF(self._num_labels, sparse_target=False)

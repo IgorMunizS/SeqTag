@@ -40,32 +40,27 @@ def training(train,test):
     x_test = [x.split() for x in test['sentence'].tolist()]
 
     print('Transforming datasets...')
-    p = IndexTransformer(use_char=True)
+    p = ELMoTransformer(use_char=True)
     p.fit(x_train + x_test, y_train)
 
     x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, train_size=0.8, random_state=233)
 
     embeddings = load_glove(config.glove_file)
-    embeddings_fast = load_glove(config.glove_file)
 
     embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
-    embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
 
-    embeddings = np.concatenate((embeddings, embeddings_fast), axis=1)
-
-
-    model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
+    model = ELModel(char_vocab_size=p.char_vocab_size,
                       word_vocab_size=p.word_vocab_size,
                       num_labels=p.label_size,
-                      word_embedding_dim=600,
+                      word_embedding_dim=300,
                       char_embedding_dim=100,
                       word_lstm_size=100,
                       char_lstm_size=50,
                       fc_dim=100,
                       dropout=0.5,
-                      embeddings=embeddings,
-                      use_char=True,
-                      use_crf=True)
+                      embeddings=embeddings)
+                      # use_char=True,
+                      # use_crf=True)
 
     opt = Adam(lr=0.001)
     model, loss = model.build()
@@ -105,14 +100,10 @@ def training(train,test):
 
     model.fit_generator(generator=train_seq,
                         validation_data=valid_seq,
-                        epochs=config.nepochs,
-                        callbacks=callbacks,
-                        verbose=True,
-                        shuffle=True,
-                        use_multiprocessing=True,
-                        workers=12)
-
-
+                              epochs=config.nepochs,
+                              callbacks=callbacks,
+                              verbose=True,
+                              shuffle=True)
 
     p.save('../models/best_transform.it')
     predict(model, p , x_test)
