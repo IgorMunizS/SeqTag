@@ -45,6 +45,7 @@ def training(train,test):
     p.fit(x_train, y_train)
 
     embeddings = load_glove(config.glove_file)
+
     embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
 
     model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
@@ -65,11 +66,24 @@ def training(train,test):
     model.compile(loss=loss, optimizer=opt, metrics=[crf_viterbi_accuracy])
 
     filepath = '../models/' + 'best_model'
-    ckp = ModelCheckpoint(filepath + '.h5', monitor='val_crf_viterbi_accuracy', verbose=1, save_best_only=True, mode='max',
+    ckp = ModelCheckpoint(filepath + '.h5',
+                          monitor='val_crf_viterbi_accuracy',
+                          verbose=1,
+                          save_best_only=True,
+                          mode='max',
                           save_weights_only=True)
 
-    es = EarlyStopping(monitor='val_crf_viterbi_accuracy', min_delta=0.00001, patience=3, verbose=1, mode='max')
-    rlr = ReduceLROnPlateau(monitor='val_crf_viterbi_accuracy', factor=0.2, patience=2, verbose=1, mode='max', min_delta=0.0001)
+    es = EarlyStopping(monitor='val_crf_viterbi_accuracy',
+                       min_delta=0.00001,
+                       patience=3,
+                       verbose=1,
+                       mode='max')
+    rlr = ReduceLROnPlateau(monitor='val_crf_viterbi_accuracy',
+                            factor=0.2,
+                            patience=2,
+                            verbose=1,
+                            mode='max',
+                            min_delta=0.0001)
 
     callbacks = [ckp, es, rlr]
 
