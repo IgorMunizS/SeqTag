@@ -19,7 +19,7 @@ def meta_embedding(tok,embedding_file,max_features,embed_size,lang='portuguese')
             embeddings_index[word] = coefs
 
     word_index = tok.word_index
-    print(word_index)
+    print(word_index[:100])
     # prepare embedding matrix
     num_words = min(max_features, len(word_index) + 1)
     embedding_matrix = np.zeros((num_words, embed_size))
