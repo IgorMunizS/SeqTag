@@ -5,8 +5,9 @@ original_data_folder = '../../sequence_tagging/data/'
 
 
 #tokens
-pad_seq_tag = 'PAD'
+pad_seq_tag = 'pad'
 
+unk_token = 'desc'
 punct_token = 'pontuação'
 number_token = 'número'
 

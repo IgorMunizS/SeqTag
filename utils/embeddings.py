@@ -1,7 +1,7 @@
 from typing import Optional, List
 from sklearn.feature_extraction.text import CountVectorizer
 from nltk.stem import SnowballStemmer
-
+import config
 import numpy as np
 import tensorflow as tf
 
@@ -19,9 +19,8 @@ def meta_embedding(tok,embedding_file,max_features,embed_size,lang='portuguese')
             embeddings_index[word] = coefs
 
     word_index = tok.word_index
-    for key, i in word_index.items():
-        if i < 100:
-            print(key,i)
+    word_index[config.pad_seq_tag] = 0
+    word_index[config.unk_token] = 999999
 
     # prepare embedding matrix
     num_words = min(max_features, len(word_index) + 1)
