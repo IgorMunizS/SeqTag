@@ -23,6 +23,12 @@ from utils.utils import pad_tokens
 from sklearn.feature_extraction.text import HashingVectorizer
 import config
 from evaluation import evaluate
+from anago.utils import load_data_and_labels
+from anago.models import BiLSTMCRF
+from anago.preprocessing import IndexTransformer
+from anago.trainer import Trainer
+from utils.callbacks import BACCscore
+from anago.utils import NERSequence
 
 def __training(X_train,y_train,max_features,maxlen,embedding_matrix,embed_size,tags):
 
@@ -52,7 +58,9 @@ def __training(X_train,y_train,max_features,maxlen,embedding_matrix,embed_size,t
     # clr = CyclicLR(base_lr=0.0003, max_lr=0.001,
     #                step_size=35000, reduce_on_plateau=1, monitor='val_loss', reduce_factor=10)
 
-    callbacks_list = [ckp, es]
+    bacc = BACCscore()
+
+    callbacks_list = [ckp, es, bacc]
 
     print("Treinando")
 

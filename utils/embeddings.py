@@ -19,15 +19,22 @@ def meta_embedding(tok,embedding_file,max_features,embed_size,lang='portuguese')
             embeddings_index[word] = coefs
 
     word_index = tok.word_index
+    print(word_index)
     # prepare embedding matrix
     num_words = min(max_features, len(word_index) + 1)
     embedding_matrix = np.zeros((num_words, embed_size))
     # unknown_vector = np.random.normal(size=embed_size)
     unknown_vector = np.zeros((embed_size,), dtype=np.float32) - 1.
+    pad_vector = np.zeros((embed_size,), dtype=np.float32) - 2.
+
     # print(unknown_vector[:5])
     for key, i in word_index.items():
         if i >= max_features:
             continue
+        if key == 0: #pad
+            embedding_matrix[i] = pad_vector
+            continue
+
         word = key
         embedding_vector = embeddings_index.get(word)
         if embedding_vector is not None:

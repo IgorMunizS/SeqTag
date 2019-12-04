@@ -16,3 +16,20 @@ def per_class_accuracy(y_preds,y_true):
         (y_true[pred_idx] == K.round(y_pred)) for pred_idx, y_pred in enumerate(y_preds)
       if y_true[pred_idx] == int(class_label)
                     ]) for class_label in class_labels]
+
+def inverse_transform(self, y, label_encoder, lengths=None):
+    """Return label strings.
+
+    Args:
+        y: label id matrix.
+        lengths: sentences length.
+
+    Returns:
+        list: list of list of strings.
+    """
+    y = np.argmax(y, -1)
+    inverse_y = [label_encoder.inverse_transform(ids) for ids in y]
+    if lengths is not None:
+        inverse_y = [iy[:l] for iy, l in zip(inverse_y, lengths)]
+
+    return inverse_y

@@ -1,0 +1,44 @@
+"""
+Custom callbacks.
+"""
+import numpy as np
+from keras.callbacks import Callback
+from seqeval.metrics import f1_score, classification_report
+from sklearn.metrics import balanced_accuracy_score
+from utils.utils import inverse_transform
+
+class BACCscore(Callback):
+
+    def __init__(self):
+        super(BACCscore, self).__init__()
+
+
+
+    def get_lengths(self, y_true):
+        lengths = []
+        for y in np.argmax(y_true, -1):
+            try:
+                i = list(y).index(0)
+            except ValueError:
+                i = len(y)
+            lengths.append(i)
+
+        return lengths
+
+    def on_epoch_end(self, epoch, logs={}):
+        label_true = []
+        label_pred = []
+        for i in range(len(self.model.validation_data[0])):
+            x_true, y_true = self.model.validation_data[0][i], self.model.validation_data[1][i]
+            lengths = self.get_lengths(y_true)
+            y_pred = self.model.predict_on_batch(x_true)
+
+            y_true = inverse_transform(y_true, lengths)
+            y_pred = inverse_transform(y_pred, lengths)
+
+            label_true.extend(y_true)
+            label_pred.extend(y_pred)
+
+        score = balanced_accuracy_score(label_true, label_pred)
+        print(' - BACC: {:04.2f}'.format(score * 100))
+
