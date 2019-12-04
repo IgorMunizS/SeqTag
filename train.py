@@ -104,7 +104,8 @@ def training(train,test):
                               callbacks=callbacks,
                               verbose=True,
                               shuffle=True,
-                        )
+                              use_multiprocessing=True,
+                              workers=8)
 
     p.save('../models/best_transform.it')
     predict(model, p , x_test)
