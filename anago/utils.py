@@ -274,11 +274,11 @@ def load_glove(file):
         dict: a dict of numpy arrays.
     """
     model = {}
-    with open(file, encoding="utf8", errors='ignore') as f:
+    with open(file, encoding='utf8') as f:
         for line in f:
-            line = line.split(' ')
+            line = line.rstrip().rsplit(' ')
             word = line[0]
-            vector = np.array([float(val) for val in line[1:]])
+            vector = np.asarray(line[1:], dtype='float32')
             model[word] = vector
 
     return model
