@@ -20,8 +20,6 @@ fasttext_size = 300
 
 char_size = 100
 
-
-
 # training
 train_embeddings    = False
 nepochs             = 20
@@ -32,6 +30,10 @@ lr                  = 0.001
 lr_decay            = 0.9
 clip                = -1  # if negative, no clipping
 nepoch_no_imprv     = 3
+
+#kaggle files
+sample_submission = '../../sequence_tagging/data/sample_submission.csv'
+
 
 # general config
 dir_output  = "results/test/"

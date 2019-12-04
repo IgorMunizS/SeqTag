@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from keras.callbacks import EarlyStopping,ModelCheckpoint,ReduceLROnPlateau, LearningRateScheduler
-from keras.optimizers import Adam, Nadam
+from keras.optimizers import Adam, Nadam, SGD
 from sklearn.model_selection import train_test_split
 from keras_radam import RAdam
 from ast import literal_eval
@@ -19,118 +19,96 @@ from utils.preprocessing import clean_numbers, clean_text
 from tqdm import tqdm
 tqdm.pandas()
 from keras.preprocessing import sequence
-from utils.utils import pad_tokens
 from sklearn.feature_extraction.text import HashingVectorizer
 import config
 from evaluation import evaluate
-from anago.utils import load_data_and_labels
+from anago.utils import load_data_and_labels, load_glove
 from anago.models import BiLSTMCRF
 from anago.preprocessing import IndexTransformer
 from anago.trainer import Trainer
 from utils.callbacks import BACCscore
 from anago.utils import NERSequence
+from anago.callbacks import F1score
+from anago.utils import filter_embeddings
+from anago.layers import crf_viterbi_accuracy
+from predict import predict
 
-def __training(X_train,y_train,max_features,maxlen,embedding_matrix,embed_size,tags, label_encoder):
+def training(train,test):
+    x_train = [x.split() for x in train['sentence'].tolist()]
+    y_train = train['tag'].tolist()
 
-    model, crf = get_model(maxlen,max_features,embed_size,embedding_matrix,len(tags))
+    x_test = [x.split() for x in test['sentence'].tolist()]
 
-    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, train_size=0.8, random_state=233)
+    print('Transforming datasets...')
+    p = IndexTransformer(use_char=True)
+    p.fit(x_train.extend(x_test), y_train)
 
+    x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, train_size=0.8, random_state=233)
 
-    train_generator = DataGenerator(X_train, y_train, tags, batch_size=config.batch_size)
+    embeddings = load_glove(config.glove_file)
 
-    val_generator = DataGenerator(X_val, y_train, tags, batch_size=config.batch_size, shuffle=False)
+    embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
 
+    model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
+                      word_vocab_size=p.word_vocab_size,
+                      num_labels=p.label_size,
+                      word_embedding_dim=300,
+                      char_embedding_dim=100,
+                      word_lstm_size=100,
+                      char_lstm_size=50,
+                      fc_dim=100,
+                      dropout=0.5,
+                      embeddings=embeddings,
+                      use_char=True,
+                      use_crf=True)
 
-    opt = Adam(lr=0.0001)
-
-    model.compile(loss=crf.loss_function, optimizer=opt, metrics=[crf.accuracy])
-
+    opt = Adam(lr=0.001)
+    model, loss = model.build()
+    model.compile(loss=loss, optimizer=opt, metrics=[crf_viterbi_accuracy])
 
     filepath = '../models/' + 'best_model'
-    ckp = ModelCheckpoint(filepath + '.h5', monitor='val_loss', verbose=1, save_best_only=True, mode='min',
+    ckp = ModelCheckpoint(filepath + '.h5',
+                          monitor='val_crf_viterbi_accuracy',
+                          verbose=1,
+                          save_best_only=True,
+                          mode='max',
                           save_weights_only=True)
 
-    es = EarlyStopping(monitor='val_loss', min_delta=0.00001, patience=5, verbose=1, mode='min')
-    # rlr = ReduceLROnPlateau(monitor='val_f1-score', factor=0.2, patience=3, verbose=1, mode='max', min_delta=0.0001)
-    # swa = SWA('../models/best_' + str(smmodel) + '_' + str(backbone) + '_' + str(n_fold) + '_swa.h5', 10)
+    es = EarlyStopping(monitor='val_crf_viterbi_accuracy',
+                       min_delta=0.00001,
+                       patience=3,
+                       verbose=1,
+                       mode='max',
+                       restore_best_weights=True)
 
-    # clr = CyclicLR(base_lr=0.0003, max_lr=0.001,
-    #                step_size=35000, reduce_on_plateau=1, monitor='val_loss', reduce_factor=10)
+    rlr = ReduceLROnPlateau(monitor='val_crf_viterbi_accuracy',
+                            factor=0.2,
+                            patience=2,
+                            verbose=1,
+                            mode='max',
+                            min_delta=0.0001)
 
-    # bacc = BACCscore(val_generator, config.batch_size, label_encoder)
+    callbacks = [ckp, es, rlr]
 
-    callbacks_list = [ckp, es]
-
-    print("Treinando")
-
-    model.fit_generator(generator=train_generator,
-                        validation_data=val_generator,
-                        callbacks=callbacks_list,
-                        epochs=config.nepochs,
-                        use_multiprocessing=True,
-                        workers=42)
-
-    return model
-
-def training(train,test,original_train):
+    train_seq = NERSequence(x_train, y_train, config.batch_size, p.transform)
 
 
-    train['sentence'] = train['sentence'].str.lower()
-    test['sentence'] = test['sentence'].str.lower()
+    if x_val and y_val:
+        valid_seq = NERSequence(x_val, y_val, config.batch_size, p.transform)
+        f1 = F1score(valid_seq, preprocessor=p)
+        callbacks.append(f1)
 
-    # stopwords = RemoveStopWords(lang)
+    model.fit_generator(generator=train_seq,
+                        validation_data=valid_seq,
+                              epochs=config.nepochs,
+                              callbacks=callbacks,
+                              verbose=True,
+                              shuffle=True,
+                              use_multiprocessing=True,
+                              workers=42)
 
-    train.drop([52495, 89263], inplace=True) # sentences with more than 150 tokens
-
-    train["sentence"] = train["sentence"].progress_apply(lambda x: clean_numbers(x))
-    train["sentence"] = train["sentence"].progress_apply(lambda x: clean_text(x))
-
-    test["sentence"] = test["sentence"].progress_apply(lambda x: clean_numbers(x))
-    test["sentence"] = test["sentence"].progress_apply(lambda x: clean_text(x))
-
-    # Check if tokens are safe (total number has to be 701106)
-    a = []
-    b = [x.split() for x in test['sentence'].tolist()]
-    for x in b:
-        a.extend(x)
-    print(len(a))
-
-    tags = original_train['Tag'].unique()
-    tags = np.append(tags,config.pad_seq_tag)
-    print(tags)
-    label_encoder = LabelEncoder().fit(tags)
-
-    X_train = train["sentence"]
-    X_test = test["sentence"]
-
-    max_features = 300000
-    maxlen = 150
-
-    tok, X_train, X_test = tokenize(X_train, X_test, max_features, maxlen)
-    max_features = min(max_features, len(tok.word_index) + 1)
-
-    y_train = train['tag'].tolist()
-    y_train = pad_tokens(y_train, maxlen, label_encoder)
-
-    # Generate char embedding without preprocess
-    # text = (train['sentence'].tolist() + test["sentence"].tolist())
-    # char_vectorizer = CharVectorizer(max_features,text)
-    # char_embed_size = char_vectorizer.embed_size
-    #
-    glove_embedding_matrix = meta_embedding(tok,config.glove_file,max_features,config.glove_size)
-    # fast_embedding_matrix = meta_embedding(tok, max_features, embed_size)
-    #
-    # char_embedding = char_vectorizer.get_char_embedding(tok)
-    #
-    #
-    # embedding_matrix = np.concatenate((glove_embedding_matrix, char_embedding), axis=1)
-    embed_size = config.glove_size
-
-    model = __training(X_train,y_train,max_features,maxlen,glove_embedding_matrix,embed_size,tags, label_encoder)
-    model.load_weights('../models/best_model.h5')
-    evaluate(model, X_train, y_train, tags, label_encoder)
-
+    p.save('../models/best_transform.it')
+    predict(model, p , x_test)
 
 def parse_args(args):
     """ Parse the arguments.
@@ -159,4 +137,4 @@ if __name__ == '__main__':
     train = pd.read_csv(config.data_folder + "train.csv", converters={"pos": literal_eval, "tag": literal_eval})
     test = pd.read_csv(config.data_folder  + "test.csv", converters={"pos": literal_eval})
 
-    training(train,test,original_train)
+    training(train,test)
