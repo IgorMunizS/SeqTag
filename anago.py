@@ -60,7 +60,7 @@ def training(train,test):
                       use_char=True,
                       use_crf=True)
 
-    opt = SGD(lr=0.01, clipnorm=5.)
+    opt = Adam(lr=0.001)
     model, loss = model.build()
     model.compile(loss=loss, optimizer=opt, metrics=[crf_viterbi_accuracy])
 
