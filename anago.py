@@ -44,7 +44,7 @@ def training(train,test):
     p = IndexTransformer(use_char=True)
     p.fit(x_train, y_train)
 
-    embeddings = load_glove(config.fasttext_file)
+    embeddings = load_glove(config.glove_file)
     embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
 
     model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
