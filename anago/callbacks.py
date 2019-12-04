@@ -4,6 +4,7 @@ Custom callbacks.
 import numpy as np
 from keras.callbacks import Callback
 from seqeval.metrics import f1_score, classification_report
+from sklearn.metrics import balanced_accuracy_score
 
 
 class F1score(Callback):
@@ -40,5 +41,7 @@ class F1score(Callback):
 
         score = f1_score(label_true, label_pred)
         print(' - f1: {:04.2f}'.format(score * 100))
+        score = balanced_accuracy_score(label_true, label_pred)
+        print(' - BACC: {:04.2f}'.format(score * 100))
         print(classification_report(label_true, label_pred))
         logs['f1'] = score
