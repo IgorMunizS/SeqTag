@@ -3,7 +3,7 @@ Model definition.
 """
 import json
 
-from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, TimeDistributed, Conv1D
+from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, TimeDistributed, Conv1D, Masking
 from keras.layers.merge import Concatenate
 from keras.models import Model, model_from_json
 
@@ -81,6 +81,7 @@ class BiLSTMCRF(object):
     def build(self):
         # build word embedding
         word_ids = Input(batch_shape=(None, None), dtype='int32', name='word_input')
+
         inputs = [word_ids]
         if self._embeddings is None:
             word_embeddings = Embedding(input_dim=self._word_vocab_size,
@@ -90,7 +91,7 @@ class BiLSTMCRF(object):
         else:
             word_embeddings = Embedding(input_dim=self._embeddings.shape[0],
                                         output_dim=self._embeddings.shape[1],
-                                        mask_zero=True,
+                                        mask_zero=False,
                                         trainable=False,
                                         weights=[self._embeddings],
                                         name='word_embedding')(word_ids)
@@ -101,13 +102,14 @@ class BiLSTMCRF(object):
             inputs.append(char_ids)
             char_embeddings = Embedding(input_dim=self._char_vocab_size,
                                         output_dim=self._char_embedding_dim,
-                                        mask_zero=True,
+                                        mask_zero=False,
                                         name='char_embedding')(char_ids)
             char_embeddings = TimeDistributed(Bidirectional(LSTM(self._char_lstm_size)))(char_embeddings)
             word_embeddings = Concatenate()([word_embeddings, char_embeddings])
 
         word_embeddings = Dropout(self._dropout)(word_embeddings)
-        z = Bidirectional(LSTM(units=self._word_lstm_size, return_sequences=True))(word_embeddings)
+        mask = Masking().compute_mask(inputs)
+        z = Bidirectional(LSTM(units=self._word_lstm_size, return_sequences=True))(word_embeddings, mask=mask)
         z = Conv1D(100,kernel_size=2, padding="valid", kernel_initializer="he_uniform")(z)
         z = Dense(self._fc_dim, activation='tanh')(z)
         # z = Dropout(self._dropout)(z)
