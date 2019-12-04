@@ -19,7 +19,6 @@ from utils.preprocessing import clean_numbers, clean_text
 from tqdm import tqdm
 tqdm.pandas()
 from keras.preprocessing import sequence
-from utils.utils import pad_tokens
 from sklearn.feature_extraction.text import HashingVectorizer
 import config
 from evaluation import evaluate
@@ -31,7 +30,7 @@ from utils.callbacks import BACCscore
 from anago.utils import NERSequence
 from anago.callbacks import F1score
 from anago.utils import filter_embeddings
-
+from utils.utils import f1_keras
 
 def training(train,test):
     x_train = [x.split() for x in train['sentence'].tolist()]
@@ -62,7 +61,7 @@ def training(train,test):
 
     opt = Adam(lr=0.001)
     model, loss = model.build()
-    model.compile(loss=loss, optimizer=opt)
+    model.compile(loss=loss, optimizer=opt, metrics=[f1_keras])
 
     filepath = '../models/' + 'best_model'
     ckp = ModelCheckpoint(filepath + '.h5', monitor='val_loss', verbose=1, save_best_only=True, mode='min',
@@ -82,6 +81,7 @@ def training(train,test):
         callbacks.append(f1)
 
     model.fit_generator(generator=train_seq,
+                        validation_data=valid_seq,
                               epochs=config.nepochs,
                               callbacks=callbacks,
                               verbose=True,
