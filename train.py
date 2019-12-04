@@ -41,7 +41,7 @@ def training(train,test):
 
     print('Transforming datasets...')
     p = IndexTransformer(use_char=True)
-    p.fit(x_train.extend(x_test), y_train)
+    p.fit(x_train + x_test, y_train)
 
     x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, train_size=0.8, random_state=233)
 
