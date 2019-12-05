@@ -13,7 +13,7 @@ number_token = 'número'
 
 #emgeddings
 glove_file = '/opt/harold/word_embeddings/portugues/glove_s100.txt'
-glove_size = 300
+glove_size = 100
 
 fasttext_file = '/opt/harold/word_embeddings/portugues/skip_s300.txt'
 fasttext_size = 300
