@@ -72,7 +72,7 @@ def training(train,test):
                           word_lstm_size=300,
                           char_lstm_size=100,
                           fc_dim=100,
-                          dropout=0.0,
+                          dropout=0.5,
                           embeddings=embeddings,
                           use_char=True,
                           use_crf=True)

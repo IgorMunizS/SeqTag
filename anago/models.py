@@ -93,7 +93,7 @@ class BiLSTMCRF(object):
         else:
             word_embeddings = Embedding(input_dim=self._embeddings.shape[0],
                                         output_dim=self._embeddings.shape[1],
-                                        mask_zero=False,
+                                        mask_zero=True,
                                         trainable=True,
                                         weights=[self._embeddings],
                                         name='word_embedding')(word_ids)
@@ -104,7 +104,7 @@ class BiLSTMCRF(object):
             inputs.append(char_ids)
             char_embeddings = Embedding(input_dim=self._char_vocab_size,
                                         output_dim=self._char_embedding_dim,
-                                        mask_zero=False,
+                                        mask_zero=True,
                                         trainable=True,
                                         name='char_embedding')(char_ids)
 
@@ -115,12 +115,12 @@ class BiLSTMCRF(object):
             # char = TimeDistributed(Flatten())(maxpool_out)
             # char_embeddings = Dropout(self._dropout)(char)
 
-            char_embeddings = TimeDistributed(Bidirectional(CuDNNLSTM(self._char_lstm_size)))(char_embeddings)
+            char_embeddings = TimeDistributed(Bidirectional(LSTM(self._char_lstm_size)))(char_embeddings)
             # char_embeddings = Dropout(self._dropout)(char_embeddings)
             word_embeddings = Concatenate()([word_embeddings, char_embeddings])
 
         word_embeddings = Dropout(self._dropout)(word_embeddings)
-        z = Bidirectional(CuDNNLSTM(units=self._word_lstm_size, return_sequences=True))(word_embeddings)
+        z = Bidirectional(LSTM(units=self._word_lstm_size, return_sequences=True))(word_embeddings)
         # z = Dropout(self._dropout)(z)
         z = Dense(self._fc_dim, activation='tanh')(z)
         z = Dropout(self._dropout)(z)
