@@ -21,7 +21,6 @@ tqdm.pandas()
 from keras.preprocessing import sequence
 from sklearn.feature_extraction.text import HashingVectorizer
 import config
-from evaluation import evaluate
 from anago.utils import load_data_and_labels, load_glove
 from anago.models import BiLSTMCRF, ELModel
 from anago.preprocessing import IndexTransformer, ELMoTransformer
