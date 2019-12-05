@@ -32,6 +32,7 @@ from anago.callbacks import F1score
 from anago.utils import filter_embeddings
 from anago.layers import crf_viterbi_accuracy
 from predict import predict
+from sklearn.model_selection import KFold
 
 def training(train,test):
     x_train = [x.split() for x in train['sentence'].tolist()]
@@ -43,79 +44,77 @@ def training(train,test):
     p = IndexTransformer(use_char=True)
     p.fit(x_train + x_test, y_train)
 
-    x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, train_size=0.8, random_state=233)
+    skf = KFold(n_splits=config.nfolds, random_state=config.seed, shuffle=True)
 
-    embeddings = load_glove(config.glove_file)
-    embeddings_fast = load_glove(config.glove_file)
+    for n_fold, (train_indices, val_indices) in enumerate(skf.split(x_train)):
+        x_train = x_train[train_indices]
+        x_val = x_train[val_indices]
+        y_train = y_train[train_indices]
+        y_val = y_train[val_indices]
 
-    embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
-    embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
+        embeddings = load_glove(config.glove_file)
+        embeddings_fast = load_glove(config.glove_file)
 
-    embeddings = np.concatenate((embeddings, embeddings_fast), axis=1)
+        embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
+        embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
 
-
-    model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
-                      word_vocab_size=p.word_vocab_size,
-                      num_labels=p.label_size,
-                      word_embedding_dim=600,
-                      char_embedding_dim=100,
-                      word_lstm_size=300,
-                      char_lstm_size=100,
-                      fc_dim=100,
-                      dropout=0.5,
-                      embeddings=embeddings,
-                      use_char=True,
-                      use_crf=True)
-
-    opt = Adam(lr=0.001, clipnorm=5.)
-    model, loss = model.build()
-    model.compile(loss=loss, optimizer=opt, metrics=[crf_viterbi_accuracy])
-
-    filepath = '../models/' + 'best_model'
-    ckp = ModelCheckpoint(filepath + '.h5',
-                          monitor='val_crf_viterbi_accuracy',
-                          verbose=1,
-                          save_best_only=True,
-                          mode='max',
-                          save_weights_only=True)
-
-    es = EarlyStopping(monitor='val_crf_viterbi_accuracy',
-                       min_delta=0.00001,
-                       patience=3,
-                       verbose=1,
-                       mode='max',
-                       restore_best_weights=True)
-
-    rlr = ReduceLROnPlateau(monitor='val_crf_viterbi_accuracy',
-                            factor=0.2,
-                            patience=2,
-                            verbose=1,
-                            mode='max',
-                            min_delta=0.0001)
-
-    callbacks = [ckp, es, rlr]
-
-    train_seq = NERSequence(x_train, y_train, config.batch_size, p.transform)
+        embeddings = np.concatenate((embeddings, embeddings_fast), axis=1)
 
 
-    if x_val and y_val:
-        valid_seq = NERSequence(x_val, y_val, config.batch_size, p.transform)
-        f1 = F1score(valid_seq, preprocessor=p)
-        callbacks.append(f1)
+        model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
+                          word_vocab_size=p.word_vocab_size,
+                          num_labels=p.label_size,
+                          word_embedding_dim=600,
+                          char_embedding_dim=200,
+                          word_lstm_size=300,
+                          char_lstm_size=200,
+                          fc_dim=100,
+                          dropout=0.5,
+                          embeddings=embeddings,
+                          use_char=True,
+                          use_crf=True)
 
-    model.fit_generator(generator=train_seq,
-                        validation_data=valid_seq,
-                        epochs=config.nepochs,
-                        callbacks=callbacks,
-                        verbose=True,
-                        shuffle=True,
-                        use_multiprocessing=True,
-                        workers=12)
+        opt = Adam(lr=0.0002, clipnorm=5.)
+        model, loss = model.build()
+        model.compile(loss=loss, optimizer=opt, metrics=[crf_viterbi_accuracy])
+
+
+        es = EarlyStopping(monitor='val_crf_viterbi_accuracy',
+                           patience=3,
+                           verbose=1,
+                           mode='max',
+                           restore_best_weights=True)
+
+        rlr = ReduceLROnPlateau(monitor='val_crf_viterbi_accuracy',
+                                factor=0.2,
+                                patience=2,
+                                verbose=1,
+                                mode='max')
+
+        callbacks = [es, rlr]
+
+        train_seq = NERSequence(x_train, y_train, config.batch_size, p.transform)
+
+
+        if x_val and y_val:
+            valid_seq = NERSequence(x_val, y_val, config.batch_size, p.transform)
+            f1 = F1score(valid_seq, preprocessor=p, fold=n_fold)
+            callbacks.append(f1)
+
+        model.fit_generator(generator=train_seq,
+                            validation_data=valid_seq,
+                            epochs=config.nepochs,
+                            callbacks=callbacks,
+                            verbose=True,
+                            shuffle=True,
+                            use_multiprocessing=True,
+                            workers=12)
 
 
 
-    p.save('../models/best_transform.it')
-    predict(model, p , x_test)
+        p.save('../models/best_transform.it')
+        model.load_weights('../models/best_model_' + '_' + str(n_fold) + '.h5')
+        predict(model, p , x_test)
 
 def parse_args(args):
     """ Parse the arguments.

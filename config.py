@@ -34,6 +34,9 @@ nepoch_no_imprv     = 3
 #kaggle files
 sample_submission = '../../sequence_tagging/data/sample_submission.csv'
 
+#folds
+nfolds= 5
+seed = 133
 
 # general config
 dir_output  = "results/test/"
