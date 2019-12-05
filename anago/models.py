@@ -112,8 +112,8 @@ class BiLSTMCRF(object):
             conv1d_out = TimeDistributed(
                 Conv1D(kernel_size=3, filters=50, padding='same', activation='tanh', strides=1))(dropout)
             maxpool_out = TimeDistributed(MaxPooling1D(self._char_embedding_dim))(conv1d_out)
-            char = TimeDistributed(Flatten())(maxpool_out)
-            char_embeddings = Dropout(self._dropout)(char)
+            # char = TimeDistributed(Flatten())(maxpool_out)
+            char_embeddings = Dropout(self._dropout)(maxpool_out)
             # char_embeddings = TimeDistributed(Bidirectional(LSTM(self._char_lstm_size)))(char_embeddings)
             word_embeddings = Concatenate()([word_embeddings, char_embeddings])
 
