@@ -21,7 +21,6 @@ tqdm.pandas()
 from keras.preprocessing import sequence
 from sklearn.feature_extraction.text import HashingVectorizer
 import config
-from evaluation import evaluate
 from anago.utils import load_data_and_labels, load_glove
 from anago.models import BiLSTMCRF, ELModel
 from anago.preprocessing import IndexTransformer, ELMoTransformer
@@ -55,28 +54,28 @@ def training(train,test):
         y_train_spl = list(np.array(y_train)[train_indices])
 
         embeddings = load_glove(config.glove_file)
-        # embeddings_fast = load_glove(config.glove_file)
+        embeddings_fast = load_glove(config.glove_file)
 
         embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
-        # embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
+        embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
 
-        # embeddings = np.concatenate((embeddings, embeddings_fast), axis=1)
+        embeddings = np.concatenate((embeddings, embeddings_fast), axis=1)
 
 
         model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
                           word_vocab_size=p.word_vocab_size,
                           num_labels=p.label_size,
-                          word_embedding_dim=300,
+                          word_embedding_dim=600,
                           char_embedding_dim=100,
-                          word_lstm_size=300,
-                          char_lstm_size=100,
+                          word_lstm_size=100,
+                          char_lstm_size=50,
                           fc_dim=100,
                           dropout=0.5,
                           embeddings=embeddings,
                           use_char=True,
                           use_crf=True)
 
-        opt = RAdam()
+        opt = Adam(lr=0.001)
         model, loss = model.build()
         model.compile(loss=loss, optimizer=opt, metrics=[crf_viterbi_accuracy])
 
@@ -145,4 +144,5 @@ if __name__ == '__main__':
     train = pd.read_csv(config.data_folder + "train.csv", converters={"pos": literal_eval, "tag": literal_eval})
     test = pd.read_csv(config.data_folder  + "test.csv", converters={"pos": literal_eval})
 
+    print("TREINANDO")
     training(train,test)

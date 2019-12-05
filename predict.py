@@ -3,7 +3,8 @@ import config
 from anago.preprocessing import IndexTransformer
 from anago.models import BiLSTMCRF
 from ast import literal_eval
-from anago.layers import CRF
+from anago.layers import CRF, crf_loss, crf_viterbi_accuracy
+from keras_radam import RAdam
 import numpy as np
 from keras.models import load_model
 
@@ -30,7 +31,7 @@ def load_and_predict():
     x_test = [x.split() for x in test['sentence'].tolist()]
 
     p = IndexTransformer(use_char=True)
-    p.load('../models/best_transform.it')
+    p = p.load('../models/best_transform.it')
 
     model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
                       word_vocab_size=p.word_vocab_size,
@@ -55,15 +56,18 @@ def predict_with_folds():
     x_test = [x.split() for x in test['sentence'].tolist()]
 
     p = IndexTransformer(use_char=True)
-    p.load('../models/best_transform.it')
+    p = p.load('../models/best_transform.it')
     lengths = map(len, x_test)
     x_test = p.transform(x_test)
 
     fold_result = []
     for n_fold in range(config.nfolds):
 
-
-        model = load_model('../models/best_model_' + str(n_fold) + '.h5', custom_objects={'CRF': CRF})
+        model = load_model('../models/best_model_' + str(n_fold) + '.h5',
+                           custom_objects={'CRF': CRF,
+                                           'RAdam': RAdam,
+                                           'crf_loss': crf_loss,
+                                           'crf_viterbi_accuracy': crf_viterbi_accuracy})
         y_pred = model.predict(x_test,
                                verbose=True)
 
