@@ -10,7 +10,7 @@ def build_submission(y_pred, n_fold):
     y_pred = [pred for line in y_pred for pred in line]
     sample['label'] = y_pred
 
-    sample.to_csv('submission_' + n_fold + '.csv', index=False)
+    sample.to_csv('submission_' + str(n_fold) + '.csv', index=False)
 
 def predict(model, p, x_test, n_fold):
     lengths = map(len, x_test)
