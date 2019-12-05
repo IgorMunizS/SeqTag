@@ -12,7 +12,7 @@ punct_token = 'pontuação'
 number_token = 'número'
 
 #emgeddings
-glove_file = '/opt/harold/word_embeddings/portugues/glove_s100.txt'
+glove_file = '/opt/harold/word_embeddings/portugues/glove_s300.txt'
 glove_size = 100
 
 fasttext_file = '/opt/harold/word_embeddings/portugues/skip_s300.txt'

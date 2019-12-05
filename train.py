@@ -65,7 +65,7 @@ def training(train,test):
         model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
                           word_vocab_size=p.word_vocab_size,
                           num_labels=p.label_size,
-                          word_embedding_dim=100,
+                          word_embedding_dim=300,
                           char_embedding_dim=50,
                           word_lstm_size=100,
                           char_lstm_size=50,
