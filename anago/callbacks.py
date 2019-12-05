@@ -22,9 +22,9 @@ class F1score(Callback):
         self.reduction_rate = 0.2
 
     def is_patience_lost(self, patience):
-        if len(self.history[-1]) > patience:
-            best_performance = max(self.history[-1][-(patience + 1):-1])
-            return best_performance == self.history[-1][-(patience + 1)] and best_performance >= self.history[-1][-1]
+        if len(self.history) > patience:
+            best_performance = max(self.history[-(patience + 1):-1])
+            return best_performance == self.history[-(patience + 1)] and best_performance >= self.history[-1]
 
     def early_stopping_check(self):
         if self.is_patience_lost(self.early_stopping_patience):
