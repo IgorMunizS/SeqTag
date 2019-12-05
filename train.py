@@ -67,16 +67,16 @@ def training(train,test):
                           word_vocab_size=p.word_vocab_size,
                           num_labels=p.label_size,
                           word_embedding_dim=600,
-                          char_embedding_dim=100,
+                          char_embedding_dim=200,
                           word_lstm_size=300,
-                          char_lstm_size=100,
+                          char_lstm_size=200,
                           fc_dim=100,
-                          dropout=0.5,
+                          dropout=0.3,
                           embeddings=embeddings,
                           use_char=True,
                           use_crf=True)
 
-        opt = Adam(lr=0.001)
+        opt = Adam(lr=0.0002)
         model, loss = model.build()
         model.compile(loss=loss, optimizer=opt, metrics=[crf_viterbi_accuracy])
 
@@ -115,7 +115,7 @@ def training(train,test):
 
 
         p.save('../models/best_transform.it')
-        model.load_weights('../models/best_model_' + '_' + str(n_fold) + '.h5')
+        model.load_weights('../models/best_model_' + str(n_fold) + '.h5')
         predict(model, p , x_test, n_fold)
 
 def parse_args(args):

@@ -114,14 +114,16 @@ class BiLSTMCRF(object):
             # maxpool_out = TimeDistributed(MaxPooling1D(self._char_embedding_dim))(conv1d_out)
             # char = TimeDistributed(Flatten())(maxpool_out)
             # char_embeddings = Dropout(self._dropout)(char)
+
             char_embeddings = TimeDistributed(Bidirectional(CuDNNLSTM(self._char_lstm_size)))(char_embeddings)
+            char_embeddings = Dropout(self._dropout)(char_embeddings)
             word_embeddings = Concatenate()([word_embeddings, char_embeddings])
 
-        word_embeddings = Dropout(self._dropout)(word_embeddings)
+        # word_embeddings = Dropout(self._dropout)(word_embeddings)
         z = Bidirectional(CuDNNLSTM(units=self._word_lstm_size, return_sequences=True))(word_embeddings)
         z = Dropout(self._dropout)(z)
         z = Dense(self._fc_dim, activation='tanh')(z)
-        z = Dropout(self._dropout)(z)
+        # z = Dropout(self._dropout)(z)
 
         if self._use_crf:
             crf = CRF(self._num_labels, sparse_target=False)
