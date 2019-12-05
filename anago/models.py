@@ -100,7 +100,7 @@ class BiLSTMCRF(object):
 
         # build character based word embedding
         if self._use_char:
-            char_ids = Input(batch_shape=(None, self._char_embedding_dim, None), dtype='int32', name='char_input')
+            char_ids = Input(batch_shape=(None, None, None), dtype='int32', name='char_input')
             inputs.append(char_ids)
             char_embeddings = Embedding(input_dim=self._char_vocab_size,
                                         output_dim=self._char_embedding_dim,
