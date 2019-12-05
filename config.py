@@ -15,8 +15,13 @@ number_token = 'número'
 glove_file = '/opt/harold/word_embeddings/portugues/glove_s300.txt'
 glove_size = 300
 
+
+
 fasttext_file = '/opt/harold/word_embeddings/portugues/skip_s300.txt'
 fasttext_size = 300
+
+wang_file = '/opt/harold/word_embeddings/portugues/wang_skip_s100.txt'
+wang_size = 100
 
 char_size = 100
 
