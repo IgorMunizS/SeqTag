@@ -37,18 +37,18 @@ def crf_nll(y_true, y_pred):
 
     crf, idx = y_pred._keras_history[:2]
     # find which values in yTrue (target) are the mask value
-    isMask = K.equal(y_true, 0)  # true for all mask values
-
-    # since y is shaped as (batch, length, features), we need all features to be mask values
-    isMask = K.all(isMask, axis=-1)  # the entire output vector must be true
-    # this second line is only necessary if the output features are more than 1
-
-    # transform to float (0 or 1) and invert
-    isMask = K.cast(isMask, dtype=K.floatx())
-    isMask = 1 - isMask  # now mask values are zero, and others are 1
-
-    # multiply this by the inputs:
-    # maybe you might need K.expand_dims(isMask) to add the extra dimension removed by K.all
+    # isMask = K.equal(y_true, 0)  # true for all mask values
+    #
+    # # since y is shaped as (batch, length, features), we need all features to be mask values
+    # isMask = K.all(isMask, axis=-1)  # the entire output vector must be true
+    # # this second line is only necessary if the output features are more than 1
+    #
+    # # transform to float (0 or 1) and invert
+    # isMask = K.cast(isMask, dtype=K.floatx())
+    # isMask = 1 - isMask  # now mask values are zero, and others are 1
+    #
+    # # multiply this by the inputs:
+    # # maybe you might need K.expand_dims(isMask) to add the extra dimension removed by K.all
     # y_true = y_true * isMask
     # crf = crf * isMask
     if crf._outbound_nodes:
@@ -56,7 +56,7 @@ def crf_nll(y_true, y_pred):
     if crf.sparse_target:
         y_true = K.one_hot(K.cast(y_true[:, :, 0], 'int32'), crf.units)
     X = crf._inbound_nodes[idx].input_tensors[0]
-    mask = isMask
+    mask = crf._inbound_nodes[idx].input_masks[0]
     nloglik = crf.get_negative_log_likelihood(y_true, X, mask)
     return nloglik
 
