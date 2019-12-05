@@ -47,10 +47,12 @@ def training(train,test):
     skf = KFold(n_splits=config.nfolds, random_state=config.seed, shuffle=True)
 
     for n_fold, (train_indices, val_indices) in enumerate(skf.split(x_train)):
-        x_train = x_train[train_indices]
-        x_val = x_train[val_indices]
-        y_train = y_train[train_indices]
-        y_val = y_train[val_indices]
+
+        x_val = np.array(x_train)[val_indices]
+        y_val = np.array(y_train)[val_indices]
+
+        x_train = np.array(x_train)[train_indices]
+        y_train = np.array(y_train)[train_indices]
 
         embeddings = load_glove(config.glove_file)
         embeddings_fast = load_glove(config.glove_file)
