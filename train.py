@@ -54,19 +54,19 @@ def training(train,test):
         y_train_spl = list(np.array(y_train)[train_indices])
 
         embeddings = load_glove(config.glove_file)
-        embeddings_fast = load_glove(config.glove_file)
+        # embeddings_fast = load_glove(config.glove_file)
 
         embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
-        embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
+        # embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
 
-        embeddings = np.concatenate((embeddings, embeddings_fast), axis=1)
+        # embeddings = np.concatenate((embeddings, embeddings_fast), axis=1)
 
 
         model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
                           word_vocab_size=p.word_vocab_size,
                           num_labels=p.label_size,
-                          word_embedding_dim=600,
-                          char_embedding_dim=100,
+                          word_embedding_dim=100,
+                          char_embedding_dim=50,
                           word_lstm_size=100,
                           char_lstm_size=50,
                           fc_dim=100,
