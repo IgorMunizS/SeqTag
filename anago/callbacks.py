@@ -6,6 +6,7 @@ from keras.callbacks import Callback
 from seqeval.metrics import f1_score, classification_report
 from sklearn.metrics import balanced_accuracy_score, f1_score as f1, classification_report as clsrep
 import os
+import keras.backend as K
 
 class F1score(Callback):
 
@@ -15,6 +16,26 @@ class F1score(Callback):
         self.p = preprocessor
         self.best_bacc = 0
         self.fold = fold
+        self.history = [] # to store per each class and also mean PR AUC
+        self.early_stopping_patience = 3
+        self.plateau_patience = 2
+        self.reduction_rate = 0.2
+
+    def is_patience_lost(self, patience):
+        if len(self.history[-1]) > patience:
+            best_performance = max(self.history[-1][-(patience + 1):-1])
+            return best_performance == self.history[-1][-(patience + 1)] and best_performance >= self.history[-1][-1]
+
+    def early_stopping_check(self):
+        if self.is_patience_lost(self.early_stopping_patience):
+            self.model.stop_training = True
+
+
+    def reduce_lr_on_plateau(self):
+        if self.is_patience_lost(self.plateau_patience):
+            new_lr = float(K.get_value(self.model.optimizer.lr)) * self.reduction_rate
+            K.set_value(self.model.optimizer.lr, new_lr)
+            print(f"\n{'# ' *20}\nReduced learning rate to {new_lr}.\n{'# ' *20}\n")
 
     def model_checkpoint(self, bacc):
         if bacc > self.best_bacc:
@@ -68,5 +89,9 @@ class F1score(Callback):
         print(' - f1: {:04.2f}'.format(score * 100))
 
         print(clsrep(label_true, label_pred, labels=classes))
+        self.history.append(bacc)
         self.model_checkpoint(bacc)
+        self.reduce_lr_on_plateau()
+        self.early_stopping_check()
+
         logs['f1'] = score

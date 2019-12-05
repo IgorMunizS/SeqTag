@@ -55,18 +55,18 @@ def training(train,test):
         y_train_spl = list(np.array(y_train)[train_indices])
 
         embeddings = load_glove(config.glove_file)
-        embeddings_fast = load_glove(config.glove_file)
+        # embeddings_fast = load_glove(config.glove_file)
 
         embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
-        embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
+        # embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
 
-        embeddings = np.concatenate((embeddings, embeddings_fast), axis=1)
+        # embeddings = np.concatenate((embeddings, embeddings_fast), axis=1)
 
 
         model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
                           word_vocab_size=p.word_vocab_size,
                           num_labels=p.label_size,
-                          word_embedding_dim=600,
+                          word_embedding_dim=300,
                           char_embedding_dim=100,
                           word_lstm_size=300,
                           char_lstm_size=100,
@@ -76,24 +76,24 @@ def training(train,test):
                           use_char=True,
                           use_crf=True)
 
-        opt = Adam(lr=0.0002)
+        opt = RAdam()
         model, loss = model.build()
         model.compile(loss=loss, optimizer=opt, metrics=[crf_viterbi_accuracy])
 
 
-        es = EarlyStopping(monitor='val_crf_viterbi_accuracy',
-                           patience=3,
-                           verbose=1,
-                           mode='max',
-                           restore_best_weights=True)
+        # es = EarlyStopping(monitor='val_crf_viterbi_accuracy',
+        #                    patience=3,
+        #                    verbose=1,
+        #                    mode='max',
+        #                    restore_best_weights=True)
+        #
+        # rlr = ReduceLROnPlateau(monitor='val_crf_viterbi_accuracy',
+        #                         factor=0.2,
+        #                         patience=2,
+        #                         verbose=1,
+        #                         mode='max')
 
-        rlr = ReduceLROnPlateau(monitor='val_crf_viterbi_accuracy',
-                                factor=0.2,
-                                patience=2,
-                                verbose=1,
-                                mode='max')
-
-        callbacks = [es, rlr]
+        callbacks = []
 
         train_seq = NERSequence(x_train_spl, y_train_spl, config.batch_size, p.transform)
 
