@@ -16,7 +16,7 @@ class F1score(Callback):
         self.best_bacc = 0
         self.fold = fold
 
-    def model_checkpoint(self, bacc, epoch):
+    def model_checkpoint(self, bacc):
         if bacc > self.best_bacc:
             # remove previous checkpoints to save space
 
