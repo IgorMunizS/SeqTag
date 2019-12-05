@@ -5,21 +5,21 @@ from anago.models import BiLSTMCRF
 from ast import literal_eval
 
 
-def build_submission(y_pred):
+def build_submission(y_pred, n_fold):
     sample = pd.read_csv(config.sample_submission)
     y_pred = [pred for line in y_pred for pred in line]
     sample['label'] = y_pred
 
-    sample.to_csv('submission.csv', index=False)
+    sample.to_csv('submission_' + n_fold + '.csv', index=False)
 
-def predict(model, p, x_test):
+def predict(model, p, x_test, n_fold):
     lengths = map(len, x_test)
     x_test = p.transform(x_test)
     y_pred = model.predict(x_test,
                            verbose=True)
     y_pred = p.inverse_transform(y_pred, lengths)
 
-    build_submission(y_pred)
+    build_submission(y_pred, n_fold)
     return y_pred
 
 def load_and_predict():

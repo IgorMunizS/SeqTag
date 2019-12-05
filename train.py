@@ -51,8 +51,8 @@ def training(train,test):
         x_val = list(np.array(x_train)[val_indices])
         y_val = list(np.array(y_train)[val_indices])
 
-        x_train = list(np.array(x_train)[train_indices])
-        y_train = list(np.array(y_train)[train_indices])
+        x_train_spl = list(np.array(x_train)[train_indices])
+        y_train_spl = list(np.array(y_train)[train_indices])
 
         embeddings = load_glove(config.glove_file)
         embeddings_fast = load_glove(config.glove_file)
@@ -67,16 +67,16 @@ def training(train,test):
                           word_vocab_size=p.word_vocab_size,
                           num_labels=p.label_size,
                           word_embedding_dim=600,
-                          char_embedding_dim=200,
+                          char_embedding_dim=100,
                           word_lstm_size=300,
-                          char_lstm_size=200,
+                          char_lstm_size=100,
                           fc_dim=100,
                           dropout=0.5,
                           embeddings=embeddings,
                           use_char=True,
                           use_crf=True)
 
-        opt = Adam(lr=0.0002, clipnorm=5.)
+        opt = Adam(lr=0.001)
         model, loss = model.build()
         model.compile(loss=loss, optimizer=opt, metrics=[crf_viterbi_accuracy])
 
@@ -95,7 +95,7 @@ def training(train,test):
 
         callbacks = [es, rlr]
 
-        train_seq = NERSequence(x_train, y_train, config.batch_size, p.transform)
+        train_seq = NERSequence(x_train_spl, y_train_spl, config.batch_size, p.transform)
 
 
         if x_val and y_val:
@@ -116,7 +116,7 @@ def training(train,test):
 
         p.save('../models/best_transform.it')
         model.load_weights('../models/best_model_' + '_' + str(n_fold) + '.h5')
-        predict(model, p , x_test)
+        predict(model, p , x_test, n_fold)
 
 def parse_args(args):
     """ Parse the arguments.

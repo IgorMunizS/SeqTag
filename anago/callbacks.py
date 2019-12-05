@@ -21,7 +21,7 @@ class F1score(Callback):
             # remove previous checkpoints to save space
 
             self.best_bacc = bacc
-            self.model.save('../models/best_model_' + '_' + str(self.fold) + '.h5')
+            self.model.save('../models/best_model_' + str(self.fold) + '.h5')
             print(f"\n{'# ' *20}\nSaved new checkpoint\n{'# ' *20}\n")
 
     def get_lengths(self, y_true):
