@@ -48,11 +48,11 @@ def training(train,test):
 
     for n_fold, (train_indices, val_indices) in enumerate(skf.split(x_train)):
 
-        x_val = np.array(x_train)[val_indices]
-        y_val = np.array(y_train)[val_indices]
+        x_val = list(np.array(x_train)[val_indices])
+        y_val = list(np.array(y_train)[val_indices])
 
-        x_train = np.array(x_train)[train_indices]
-        y_train = np.array(y_train)[train_indices]
+        x_train = list(np.array(x_train)[train_indices])
+        y_train = list(np.array(y_train)[train_indices])
 
         embeddings = load_glove(config.glove_file)
         embeddings_fast = load_glove(config.glove_file)
