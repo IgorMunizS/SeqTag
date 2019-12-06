@@ -69,8 +69,8 @@ def training(train,test):
                           num_labels=p.label_size,
                           word_embedding_dim=700,
                           char_embedding_dim=100,
-                          word_lstm_size=300,
-                          char_lstm_size=100,
+                          word_lstm_size=100,
+                          char_lstm_size=50,
                           fc_dim=100,
                           dropout=0.5,
                           embeddings=embeddings,
@@ -82,19 +82,19 @@ def training(train,test):
         model.compile(loss=loss, optimizer=opt, metrics=[crf_viterbi_accuracy])
 
 
-        # es = EarlyStopping(monitor='val_crf_viterbi_accuracy',
-        #                    patience=3,
-        #                    verbose=1,
-        #                    mode='max',
-        #                    restore_best_weights=True)
-        #
-        # rlr = ReduceLROnPlateau(monitor='val_crf_viterbi_accuracy',
-        #                         factor=0.2,
-        #                         patience=2,
-        #                         verbose=1,
-        #                         mode='max')
+        es = EarlyStopping(monitor='val_crf_viterbi_accuracy',
+                           patience=3,
+                           verbose=1,
+                           mode='max',
+                           restore_best_weights=True)
 
-        callbacks = []
+        rlr = ReduceLROnPlateau(monitor='val_crf_viterbi_accuracy',
+                                factor=0.2,
+                                patience=2,
+                                verbose=1,
+                                mode='max')
+
+        callbacks = [es,rlr]
 
         train_seq = NERSequence(x_train_spl, y_train_spl, config.batch_size, p.transform)
 

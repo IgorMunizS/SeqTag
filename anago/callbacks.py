@@ -91,7 +91,7 @@ class F1score(Callback):
         print(clsrep(label_true, label_pred, labels=classes))
         self.history.append(bacc)
         self.model_checkpoint(bacc)
-        self.reduce_lr_on_plateau()
-        self.early_stopping_check()
+        # self.reduce_lr_on_plateau()
+        # self.early_stopping_check()
 
         logs['f1'] = score
