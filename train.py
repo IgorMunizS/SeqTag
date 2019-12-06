@@ -33,6 +33,10 @@ from anago.layers import crf_viterbi_accuracy
 from predict import predict
 from sklearn.model_selection import KFold
 
+### BEST CONFIG SO FAR ####
+#Fold 1: 93.29
+#Fold Pred: 93.4999
+
 def training(train,test, fold):
     x_train = [x.split() for x in train['sentence'].tolist()]
     y_train = train['tag'].tolist()
