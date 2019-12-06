@@ -48,6 +48,7 @@ def training(train,test, fold):
     for n_fold, (train_indices, val_indices) in enumerate(skf.split(x_train)):
 
         if n_fold >= fold:
+            print("Training fold: ", n_fold)
             x_val = list(np.array(x_train)[val_indices])
             y_val = list(np.array(y_train)[val_indices])
 
