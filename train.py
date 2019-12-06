@@ -33,7 +33,7 @@ from anago.layers import crf_viterbi_accuracy
 from predict import predict
 from sklearn.model_selection import KFold
 
-def training(train,test):
+def training(train,test, fold):
     x_train = [x.split() for x in train['sentence'].tolist()]
     y_train = train['tag'].tolist()
 
@@ -47,77 +47,78 @@ def training(train,test):
 
     for n_fold, (train_indices, val_indices) in enumerate(skf.split(x_train)):
 
-        x_val = list(np.array(x_train)[val_indices])
-        y_val = list(np.array(y_train)[val_indices])
+        if n_fold >= fold:
+            x_val = list(np.array(x_train)[val_indices])
+            y_val = list(np.array(y_train)[val_indices])
 
-        x_train_spl = list(np.array(x_train)[train_indices])
-        y_train_spl = list(np.array(y_train)[train_indices])
+            x_train_spl = list(np.array(x_train)[train_indices])
+            y_train_spl = list(np.array(y_train)[train_indices])
 
-        embeddings = load_glove(config.glove_file)
-        embeddings_fast = load_glove(config.glove_file)
-        embeddings_wang = load_glove(config.wang_file)
+            embeddings = load_glove(config.glove_file)
+            embeddings_fast = load_glove(config.glove_file)
+            embeddings_wang = load_glove(config.wang_file)
 
-        embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
-        embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
-        embeddings_wang = filter_embeddings(embeddings_wang, p._word_vocab.vocab, config.wang_size)
+            embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
+            embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
+            embeddings_wang = filter_embeddings(embeddings_wang, p._word_vocab.vocab, config.wang_size)
 
-        embeddings = np.concatenate((embeddings, embeddings_fast, embeddings_wang), axis=1)
-
-
-        model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
-                          word_vocab_size=p.word_vocab_size,
-                          num_labels=p.label_size,
-                          word_embedding_dim=700,
-                          char_embedding_dim=100,
-                          word_lstm_size=300,
-                          char_lstm_size=100,
-                          fc_dim=100,
-                          dropout=0.5,
-                          embeddings=embeddings,
-                          use_char=True,
-                          use_crf=True)
-
-        opt = Adam(lr=0.001)
-        model, loss = model.build()
-        model.compile(loss=loss, optimizer=opt, metrics=[crf_viterbi_accuracy])
+            embeddings = np.concatenate((embeddings, embeddings_fast, embeddings_wang), axis=1)
 
 
-        es = EarlyStopping(monitor='val_crf_viterbi_accuracy',
-                           patience=3,
-                           verbose=1,
-                           mode='max',
-                           restore_best_weights=True)
+            model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
+                              word_vocab_size=p.word_vocab_size,
+                              num_labels=p.label_size,
+                              word_embedding_dim=700,
+                              char_embedding_dim=100,
+                              word_lstm_size=300,
+                              char_lstm_size=100,
+                              fc_dim=100,
+                              dropout=0.5,
+                              embeddings=embeddings,
+                              use_char=True,
+                              use_crf=True)
 
-        rlr = ReduceLROnPlateau(monitor='val_crf_viterbi_accuracy',
-                                factor=0.2,
-                                patience=2,
-                                verbose=1,
-                                mode='max')
-
-        callbacks = [es,rlr]
-
-        train_seq = NERSequence(x_train_spl, y_train_spl, config.batch_size, p.transform)
-
-
-        if x_val and y_val:
-            valid_seq = NERSequence(x_val, y_val, config.batch_size, p.transform)
-            f1 = F1score(valid_seq, preprocessor=p, fold=n_fold)
-            callbacks.append(f1)
-
-        model.fit_generator(generator=train_seq,
-                            validation_data=valid_seq,
-                            epochs=config.nepochs,
-                            callbacks=callbacks,
-                            verbose=True,
-                            shuffle=True,
-                            use_multiprocessing=True,
-                            workers=12)
+            opt = Adam(lr=0.001)
+            model, loss = model.build()
+            model.compile(loss=loss, optimizer=opt, metrics=[crf_viterbi_accuracy])
 
 
+            es = EarlyStopping(monitor='val_crf_viterbi_accuracy',
+                               patience=3,
+                               verbose=1,
+                               mode='max',
+                               restore_best_weights=True)
 
-        p.save('../models/best_transform.it')
-        model.load_weights('../models/best_model_' + str(n_fold) + '.h5')
-        predict(model, p , x_test, n_fold)
+            rlr = ReduceLROnPlateau(monitor='val_crf_viterbi_accuracy',
+                                    factor=0.2,
+                                    patience=2,
+                                    verbose=1,
+                                    mode='max')
+
+            callbacks = [es,rlr]
+
+            train_seq = NERSequence(x_train_spl, y_train_spl, config.batch_size, p.transform)
+
+
+            if x_val and y_val:
+                valid_seq = NERSequence(x_val, y_val, config.batch_size, p.transform)
+                f1 = F1score(valid_seq, preprocessor=p, fold=n_fold)
+                callbacks.append(f1)
+
+            model.fit_generator(generator=train_seq,
+                                validation_data=valid_seq,
+                                epochs=config.nepochs,
+                                callbacks=callbacks,
+                                verbose=True,
+                                shuffle=True,
+                                use_multiprocessing=True,
+                                workers=12)
+
+
+
+            p.save('../models/best_transform.it')
+            model.load_weights('../models/best_model_' + str(n_fold) + '.h5')
+            predict(model, p , x_test, n_fold)
 
 def parse_args(args):
     """ Parse the arguments.
@@ -125,7 +126,7 @@ def parse_args(args):
     parser = argparse.ArgumentParser(description='Predict script')
 
 
-    parser.add_argument('--model', help='Local of training', default='normal')
+    parser.add_argument('--fold', help='specific fold to train', default=0, type=int)
     parser.add_argument("--cpu", default=False, type=bool)
 
 
@@ -147,4 +148,4 @@ if __name__ == '__main__':
     test = pd.read_csv(config.data_folder  + "test.csv", converters={"pos": literal_eval})
 
     print("TREINANDO")
-    training(train,test)
+    training(train,test, args.fold)
