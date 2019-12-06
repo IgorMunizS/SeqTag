@@ -37,6 +37,7 @@ from sklearn.model_selection import KFold
 #Fold 1: 93.29
 #Fold Pred: 93.4999
 
+
 def training(train,test, fold):
     x_train = [x.split() for x in train['sentence'].tolist()]
     y_train = train['tag'].tolist()
