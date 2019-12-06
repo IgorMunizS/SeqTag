@@ -94,7 +94,7 @@ class BiLSTMCRF(object):
             word_embeddings = Embedding(input_dim=self._embeddings.shape[0],
                                         output_dim=self._embeddings.shape[1],
                                         mask_zero=False,
-                                        trainable=False,
+                                        trainable=True,
                                         weights=[self._embeddings],
                                         name='word_embedding')(word_ids)
 
