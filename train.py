@@ -75,7 +75,7 @@ def training(train,test, fold):
                               word_vocab_size=p.word_vocab_size,
                               num_labels=p.label_size,
                               word_embedding_dim=1800,
-                              char_embedding_dim=300,
+                              char_embedding_dim=100,
                               word_lstm_size=300,
                               char_lstm_size=100,
                               fc_dim=100,
