@@ -94,7 +94,7 @@ class BiLSTMCRF(object):
             word_embeddings = Embedding(input_dim=self._embeddings.shape[0],
                                         output_dim=self._embeddings.shape[1],
                                         mask_zero=False,
-                                        trainable=True,
+                                        trainable=False,
                                         weights=[self._embeddings],
                                         name='word_embedding')(word_ids)
 
@@ -105,7 +105,7 @@ class BiLSTMCRF(object):
             char_embeddings = Embedding(input_dim=self._char_vocab_size,
                                         output_dim=self._char_embedding_dim,
                                         mask_zero=False,
-                                        trainable=True,
+                                        trainable=False,
                                         name='char_embedding')(char_ids)
 
             # dropout = Dropout(self._dropout)(char_embeddings)
