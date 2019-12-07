@@ -8,8 +8,10 @@ from anago.preprocessing import IndexTransformer
 from keras.models import load_model
 from anago.layers import CRF, crf_loss, crf_viterbi_accuracy
 from keras_radam import RAdam
+import sys
+import argparse
 
-def evaluate():
+def evaluate(swa):
     train = pd.read_csv(config.data_folder + "train.csv", converters={"pos": literal_eval, "tag": literal_eval})
     x_train = [x.split() for x in train['sentence'].tolist()]
     y_train = train['tag'].tolist()
@@ -32,7 +34,12 @@ def evaluate():
         lengths = map(len, x_val)
         x_val = p.transform(x_val)
 
-        model = load_model('../models/best_model_' + str(n_fold) + '.h5',
+        path = '../models/best_model_' + str(n_fold)
+
+        if swa:
+            path += '_swa'
+
+        model = load_model(path + '.h5',
                            custom_objects={'CRF': CRF,
                                            'RAdam': RAdam,
                                            'crf_loss' : crf_loss,
@@ -51,7 +58,23 @@ def evaluate():
     bacc = balanced_accuracy_score(oof_data,oof_data_pred)
     print("Final CV: ", bacc*100)
 
+def parse_args(args):
+    """ Parse the arguments.
+    """
+    parser = argparse.ArgumentParser(description='Predict script')
 
+
+    parser.add_argument("--swa", default=False, type=bool)
+
+
+
+
+    return parser.parse_args(args)
 
 if __name__ == '__main__':
-   evaluate()
+    args = sys.argv[1:]
+    args = parse_args(args)
+
+
+    print("Evaluation")
+    evaluate(args.swa)
