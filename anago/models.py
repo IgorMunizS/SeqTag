@@ -3,7 +3,7 @@ Model definition.
 """
 import json
 
-from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, TimeDistributed
+from keras.layers import Dense, LSTM, Bidirectional, Embedding, Input, Dropout, TimeDistributed, GlobalMaxPooling1D
 from keras.layers import Conv1D, CuDNNLSTM, MaxPooling1D, Flatten
 
 from keras.layers.merge import Concatenate
@@ -115,7 +115,9 @@ class BiLSTMCRF(object):
             # char = TimeDistributed(Flatten())(maxpool_out)
             # char_embeddings = Dropout(self._dropout)(char)
 
-            char_embeddings = TimeDistributed(Bidirectional(CuDNNLSTM(self._char_lstm_size)))(char_embeddings)
+            # char_embeddings = TimeDistributed(Bidirectional(CuDNNLSTM(self._char_lstm_size)))(char_embeddings)
+            chars = TimeDistributed(Conv1D(100, 3, padding='same'), name="char_cnn")(char_embeddings)
+            chars = TimeDistributed(GlobalMaxPooling1D(), name="char_pooling")(chars)
             # char_embeddings = Dropout(self._dropout)(char_embeddings)
             word_embeddings = Concatenate()([word_embeddings, char_embeddings])
 
