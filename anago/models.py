@@ -115,11 +115,11 @@ class BiLSTMCRF(object):
             # char = TimeDistributed(Flatten())(maxpool_out)
             # char_embeddings = Dropout(self._dropout)(char)
 
-            char_embeddings = TimeDistributed(Bidirectional(CuDNNLSTM(self._char_lstm_size)))(char_embeddings)
-            # chars = TimeDistributed(Conv1D(self._char_lstm_size, 3, padding='same'), name="char_cnn")(char_embeddings)
-            # chars = TimeDistributed(GlobalMaxPooling1D(), name="char_pooling")(chars)
+            # char_embeddings = TimeDistributed(Bidirectional(CuDNNLSTM(self._char_lstm_size)))(char_embeddings)
+            chars = TimeDistributed(Conv1D(self._char_lstm_size, 3, padding='same'), name="char_cnn")(char_embeddings)
+            chars = TimeDistributed(GlobalMaxPooling1D(), name="char_pooling")(chars)
             # char_embeddings = Dropout(self._dropout)(char_embeddings)
-            word_embeddings = Concatenate()([word_embeddings, char_embeddings])
+            word_embeddings = Concatenate()([word_embeddings, chars])
 
         word_embeddings = Dropout(self._dropout)(word_embeddings)
         z = Bidirectional(CuDNNLSTM(units=self._word_lstm_size, return_sequences=True))(word_embeddings)

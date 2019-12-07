@@ -97,22 +97,22 @@ class F1score(Callback):
         # self.early_stopping_check()
         logs['f1'] = score
 
-    #     if epoch == self.swa_epoch:
-    #         self.swa_weights = self.model.get_weights()
-    #
-    #     if epoch > self.swa_epoch and bacc > self.best_bacc:
-    #         for i in range(len(self.swa_weights)):
-    #             self.swa_weights[i] = (self.swa_weights[i] *
-    #                                    (epoch - self.swa_epoch) + self.model.get_weights()[i]) / (
-    #                                               (epoch - self.swa_epoch) + 1)
-    #
-    #     else:
-    #         pass
-    #
-    # def on_train_end(self, logs=None):
-    #     self.model.set_weights(self.swa_weights)
-    #     print('Final model parameters set to stochastic weight average.')
-    #     self.model.save(self.swa_filepath)
-    #     print('Final stochastic averaged weights saved to file.')
+        if epoch == self.swa_epoch:
+            self.swa_weights = self.model.get_weights()
+
+        if epoch > self.swa_epoch and bacc > self.best_bacc:
+            for i in range(len(self.swa_weights)):
+                self.swa_weights[i] = (self.swa_weights[i] *
+                                       (epoch - self.swa_epoch) + self.model.get_weights()[i]) / (
+                                                  (epoch - self.swa_epoch) + 1)
+
+        else:
+            pass
+
+    def on_train_end(self, logs=None):
+        self.model.set_weights(self.swa_weights)
+        print('Final model parameters set to stochastic weight average.')
+        self.model.save(self.swa_filepath)
+        print('Final stochastic averaged weights saved to file.')
 
 
