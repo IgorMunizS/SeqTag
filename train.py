@@ -61,7 +61,7 @@ def training(train,test, fold):
             y_train_spl = list(np.array(y_train)[train_indices])
 
             embeddings = load_glove(config.glove_file)
-            # embeddings_fast = load_glove(config.glove_file)
+            embeddings_fast = load_glove(config.glove_file)
             embeddings_wang = load_glove(config.wang_file)
 
             embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
