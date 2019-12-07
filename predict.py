@@ -7,6 +7,8 @@ from anago.layers import CRF, crf_loss, crf_viterbi_accuracy
 from keras_radam import RAdam
 import numpy as np
 from keras.models import load_model
+import sys
+import argparse
 
 
 def build_submission(y_pred, n_fold):
@@ -51,7 +53,7 @@ def load_and_predict():
 
     predict(model, p, x_test)
 
-def predict_with_folds():
+def predict_with_folds(swa):
     test = pd.read_csv(config.data_folder + "test.csv", converters={"pos": literal_eval})
     x_test = [x.split() for x in test['sentence'].tolist()]
 
@@ -63,7 +65,12 @@ def predict_with_folds():
     fold_result = []
     for n_fold in range(config.nfolds):
 
-        model = load_model('../models/best_model_' + str(n_fold) + '.h5',
+        path = '../models/best_model_' + str(n_fold)
+
+        if swa:
+            path += '_swa'
+
+        model = load_model(path + '.h5',
                            custom_objects={'CRF': CRF,
                                            'RAdam': RAdam,
                                            'crf_loss': crf_loss,
@@ -79,5 +86,23 @@ def predict_with_folds():
 
 
 
+def parse_args(args):
+    """ Parse the arguments.
+    """
+    parser = argparse.ArgumentParser(description='Predict script')
+
+
+    parser.add_argument("--swa", default=False, type=bool)
+
+
+
+
+    return parser.parse_args(args)
+
 if __name__ == '__main__':
-   predict_with_folds()
+    args = sys.argv[1:]
+    args = parse_args(args)
+
+
+    print("Evaluation")
+    predict_with_folds(args.swa)
