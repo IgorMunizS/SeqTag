@@ -61,25 +61,25 @@ def training(train,test, fold):
             y_train_spl = list(np.array(y_train)[train_indices])
 
             embeddings = load_glove(config.glove_file)
-            embeddings_fast = load_glove(config.glove_file)
+            # embeddings_fast = load_glove(config.glove_file)
             embeddings_wang = load_glove(config.wang_file)
 
             embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
-            embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
+            # embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
             embeddings_wang = filter_embeddings(embeddings_wang, p._word_vocab.vocab, config.wang_size)
 
-            embeddings = np.concatenate((embeddings, embeddings_fast, embeddings_wang), axis=1)
+            embeddings = np.concatenate((embeddings, embeddings_wang), axis=1)
 
 
             model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
                               word_vocab_size=p.word_vocab_size,
                               num_labels=p.label_size,
-                              word_embedding_dim=1800,
-                              char_embedding_dim=100,
+                              word_embedding_dim=1200,
+                              char_embedding_dim=50,
                               word_lstm_size=300,
-                              char_lstm_size=100,
+                              char_lstm_size=300,
                               fc_dim=100,
-                              dropout=0.5,
+                              dropout=0.3,
                               embeddings=embeddings,
                               use_char=True,
                               use_crf=True)
