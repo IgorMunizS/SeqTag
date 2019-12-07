@@ -61,20 +61,20 @@ def training(train,test, fold):
             y_train_spl = list(np.array(y_train)[train_indices])
 
             embeddings = load_glove(config.glove_file)
-            # embeddings_fast = load_glove(config.glove_file)
+            embeddings_fast = load_glove(config.glove_file)
             embeddings_wang = load_glove(config.wang_file)
 
             embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
-            # embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
+            embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
             embeddings_wang = filter_embeddings(embeddings_wang, p._word_vocab.vocab, config.wang_size)
 
-            embeddings = np.concatenate((embeddings, embeddings_wang), axis=1)
+            embeddings = np.concatenate((embeddings,embeddings_fast, embeddings_wang), axis=1)
 
 
             model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
                               word_vocab_size=p.word_vocab_size,
                               num_labels=p.label_size,
-                              word_embedding_dim=1200,
+                              word_embedding_dim=700,
                               char_embedding_dim=100,
                               word_lstm_size=300,
                               char_lstm_size=300,
@@ -108,7 +108,7 @@ def training(train,test, fold):
 
             if x_val and y_val:
                 valid_seq = NERSequence(x_val, y_val, config.batch_size, p.transform)
-                f1 = F1score(valid_seq, preprocessor=p, fold=n_fold)
+                f1 = F1score(valid_seq, preprocessor=p, fold=n_fold, swa_epoch=7)
                 callbacks.append(f1)
 
             model.fit_generator(generator=train_seq,

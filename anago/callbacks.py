@@ -10,7 +10,7 @@ import keras.backend as K
 
 class F1score(Callback):
 
-    def __init__(self, seq, preprocessor=None, fold=0):
+    def __init__(self, seq, preprocessor=None, fold=0, swa_epoch=7):
         super(F1score, self).__init__()
         self.seq = seq
         self.p = preprocessor
@@ -20,6 +20,8 @@ class F1score(Callback):
         self.early_stopping_patience = 3
         self.plateau_patience = 2
         self.reduction_rate = 0.2
+        self.swa_epoch = swa_epoch
+        self.swa_filepath = '../models/best_model_' + str(self.fold) + '_swa' + '.h5'
 
     def is_patience_lost(self, patience):
         if len(self.history) > patience:
@@ -93,5 +95,24 @@ class F1score(Callback):
         self.model_checkpoint(bacc)
         # self.reduce_lr_on_plateau()
         # self.early_stopping_check()
-
         logs['f1'] = score
+
+        if epoch == self.swa_epoch:
+            self.swa_weights = self.model.get_weights()
+
+        if epoch > self.swa_epoch and bacc > self.best_bacc:
+            for i in range(len(self.swa_weights)):
+                self.swa_weights[i] = (self.swa_weights[i] *
+                                       (epoch - self.swa_epoch) + self.model.get_weights()[i]) / (
+                                                  (epoch - self.swa_epoch) + 1)
+
+        else:
+            pass
+
+    def on_train_end(self, logs=None):
+        self.model.set_weights(self.swa_weights)
+        print('Final model parameters set to stochastic weight average.')
+        self.model.save(self.swa_filepath)
+        print('Final stochastic averaged weights saved to file.')
+
+
