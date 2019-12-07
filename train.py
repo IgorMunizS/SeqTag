@@ -81,7 +81,7 @@ def training(train,test, fold):
                               fc_dim=100,
                               dropout=0.5,
                               embeddings=embeddings,
-                              use_char=True,
+                              use_char=False,
                               use_crf=True)
 
             opt = Adam(lr=0.001)
