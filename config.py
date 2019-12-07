@@ -12,14 +12,14 @@ punct_token = 'pontuação'
 number_token = 'número'
 
 #emgeddings
-glove_file = '/opt/harold/word_embeddings/portugues/glove_s300.txt'
-glove_size = 300
+glove_file = '/opt/harold/word_embeddings/portugues/glove_s600.txt'
+glove_size = 600
 
-fasttext_file = '/opt/harold/word_embeddings/portugues/fast_skip_s300.txt'
-fasttext_size = 300
+fasttext_file = '/opt/harold/word_embeddings/portugues/fast_skip_s600.txt'
+fasttext_size = 600
 
-wang_file = '/opt/harold/word_embeddings/portugues/wang_skip_s100.txt'
-wang_size = 100
+wang_file = '/opt/harold/word_embeddings/portugues/wang_skip_s600.txt'
+wang_size = 600
 
 char_size = 100
 
