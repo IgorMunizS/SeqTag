@@ -22,6 +22,7 @@ class F1score(Callback):
         self.reduction_rate = 0.2
         self.swa_epoch = swa_epoch
         self.swa_filepath = '../models/best_model_' + str(self.fold) + '_swa' + '.h5'
+        self.swa_control = 0
 
     def is_patience_lost(self, patience):
         if len(self.history) > patience:
@@ -101,10 +102,10 @@ class F1score(Callback):
             self.swa_weights = self.model.get_weights()
 
         if epoch > self.swa_epoch and bacc > self.best_bacc:
+            self.swa_control +=1
             for i in range(len(self.swa_weights)):
                 self.swa_weights[i] = (self.swa_weights[i] *
-                                       (epoch - self.swa_epoch) + self.model.get_weights()[i]) / (
-                                                  (epoch - self.swa_epoch) + 1)
+                                       self.swa_control + self.model.get_weights()[i]) / (self.swa_control + 1)
 
         else:
             pass

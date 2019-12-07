@@ -1,3 +1,6 @@
+### BEST CONFIG SO FAR ####
+#Fold 1: 93.37
+#Fold Pred: 93.651
 
 #data
 data_folder = '../dados/'

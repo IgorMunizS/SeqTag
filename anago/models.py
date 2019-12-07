@@ -11,6 +11,9 @@ from keras.models import Model, model_from_json
 
 from anago.layers import CRF
 
+### BEST CONFIG SO FAR ####
+#Fold 1: 93.37
+#Fold Pred: 93.651
 
 def save_model(model, weights_file, params_file):
     with open(params_file, 'w') as f:

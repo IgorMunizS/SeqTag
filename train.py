@@ -34,8 +34,8 @@ from predict import predict
 from sklearn.model_selection import KFold
 
 ### BEST CONFIG SO FAR ####
-#Fold 1: 93.29
-#Fold Pred: 93.4999
+#Fold 1: 93.37
+#Fold Pred: 93.651
 
 
 def training(train,test, fold):
