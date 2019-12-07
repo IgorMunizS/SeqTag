@@ -65,7 +65,7 @@ def training(train,test, fold):
             embeddings_wang = load_glove(config.wang_file)
 
             embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
-            # embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
+            embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
             embeddings_wang = filter_embeddings(embeddings_wang, p._word_vocab.vocab, config.wang_size)
 
             embeddings = np.concatenate((embeddings, embeddings_wang), axis=1)
@@ -74,7 +74,7 @@ def training(train,test, fold):
             model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
                               word_vocab_size=p.word_vocab_size,
                               num_labels=p.label_size,
-                              word_embedding_dim=1200,
+                              word_embedding_dim=1800,
                               char_embedding_dim=50,
                               word_lstm_size=300,
                               char_lstm_size=300,
