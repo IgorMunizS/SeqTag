@@ -51,14 +51,14 @@ def training(train,test, fold):
     skf = KFold(n_splits=config.nfolds, random_state=config.seed, shuffle=True)
 
     embeddings = load_glove(config.glove_file)
-    embeddings_fast = load_glove(config.glove_file)
+    # embeddings_fast = load_glove(config.glove_file)
     embeddings_wang = load_glove(config.wang_file)
 
     embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
-    embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
+    # embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
     embeddings_wang = filter_embeddings(embeddings_wang, p._word_vocab.vocab, config.wang_size)
 
-    embeddings = np.concatenate((embeddings, embeddings_fast, embeddings_wang), axis=1)
+    embeddings = np.concatenate((embeddings, embeddings_wang), axis=1)
 
     for n_fold, (train_indices, val_indices) in enumerate(skf.split(x_train)):
 
@@ -74,12 +74,12 @@ def training(train,test, fold):
             model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
                               word_vocab_size=p.word_vocab_size,
                               num_labels=p.label_size,
-                              word_embedding_dim=1800,
+                              word_embedding_dim=1200,
                               char_embedding_dim=50,
-                              word_lstm_size=256,
-                              char_lstm_size=256,
-                              fc_dim=150,
-                              dropout=0.2,
+                              word_lstm_size=300,
+                              char_lstm_size=300,
+                              fc_dim=50,
+                              dropout=0.5,
                               embeddings=embeddings,
                               use_char=True,
                               use_crf=True)
