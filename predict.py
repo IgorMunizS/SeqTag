@@ -9,6 +9,7 @@ import numpy as np
 from keras.models import load_model
 import sys
 import argparse
+import os
 
 
 def build_submission(y_pred, n_fold):
@@ -84,6 +85,44 @@ def predict_with_folds(swa):
     y_pred = p.inverse_transform(final_pred, lengths)
     build_submission(y_pred, 'fold')
 
+def predict_with_emsemble(swa):
+    test = pd.read_csv(config.data_folder + "test.csv", converters={"pos": literal_eval})
+    x_test = [x.split() for x in test['sentence'].tolist()]
+
+    p = IndexTransformer(use_char=True)
+    p = p.load('../models/best_transform.it')
+    lengths = map(len, x_test)
+    x_test = p.transform(x_test)
+
+    fold_result = []
+    model_result=[]
+
+    for folder_model in [x  for x in os.listdir('../models/') if os.path.isdir(x)]:
+        for n_fold in range(config.nfolds):
+
+            path = '../models/' + str(folder_model) + '/best_model_' + str(n_fold)
+
+            if swa:
+                path += '_swa'
+
+            model = load_model(path + '.h5',
+                               custom_objects={'CRF': CRF,
+                                               'RAdam': RAdam,
+                                               'crf_loss': crf_loss,
+                                               'crf_viterbi_accuracy': crf_viterbi_accuracy})
+            y_pred = model.predict(x_test,
+                                   verbose=True)
+
+            fold_result.append(y_pred)
+
+        final_pred = np.mean(fold_result, axis=0)
+        model_result.append(final_pred)
+
+    model_result = np.mean(model_result, axis=0)
+    y_pred = p.inverse_transform(model_result, lengths)
+    build_submission(y_pred, 'emsemble')
+
+
 
 
 def parse_args(args):
@@ -93,7 +132,7 @@ def parse_args(args):
 
 
     parser.add_argument("--swa", default=False, type=bool)
-
+    parser.add_argument("--emsemble", default=False, type=bool)
 
 
 
@@ -104,5 +143,7 @@ if __name__ == '__main__':
     args = parse_args(args)
 
 
-    print("Evaluation")
-    predict_with_folds(args.swa)
+    if args.emsemble:
+        predict_with_emsemble(args.swa)
+    else:
+        predict_with_folds(args.swa)
