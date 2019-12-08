@@ -97,7 +97,7 @@ def predict_with_emsemble(swa):
     fold_result = []
     model_result=[]
 
-    for folder_model in [x  for x in os.listdir('../models/') if os.path.isdir(x)]:
+    for folder_model in [x for x in os.listdir('../models/') if os.path.isdir(os.path.join('../models/',x))]:
         for n_fold in range(config.nfolds):
 
             path = '../models/' + str(folder_model) + '/best_model_' + str(n_fold)
