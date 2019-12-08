@@ -50,6 +50,16 @@ def training(train,test, fold):
 
     skf = KFold(n_splits=config.nfolds, random_state=config.seed, shuffle=True)
 
+    embeddings = load_glove(config.glove_file)
+    embeddings_fast = load_glove(config.glove_file)
+    embeddings_wang = load_glove(config.wang_file)
+
+    embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
+    embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
+    embeddings_wang = filter_embeddings(embeddings_wang, p._word_vocab.vocab, config.wang_size)
+
+    embeddings = np.concatenate((embeddings, embeddings_fast, embeddings_wang), axis=1)
+
     for n_fold, (train_indices, val_indices) in enumerate(skf.split(x_train)):
 
         if n_fold >= fold:
@@ -59,16 +69,6 @@ def training(train,test, fold):
 
             x_train_spl = list(np.array(x_train)[train_indices])
             y_train_spl = list(np.array(y_train)[train_indices])
-
-            embeddings = load_glove(config.glove_file)
-            embeddings_fast = load_glove(config.glove_file)
-            embeddings_wang = load_glove(config.wang_file)
-
-            embeddings = filter_embeddings(embeddings, p._word_vocab.vocab, config.glove_size)
-            embeddings_fast = filter_embeddings(embeddings_fast, p._word_vocab.vocab, config.fasttext_size)
-            embeddings_wang = filter_embeddings(embeddings_wang, p._word_vocab.vocab, config.wang_size)
-
-            embeddings = np.concatenate((embeddings, embeddings_wang), axis=1)
 
 
             model = BiLSTMCRF(char_vocab_size=p.char_vocab_size,
