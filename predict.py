@@ -117,6 +117,8 @@ def predict_with_emsemble(swa):
 
         final_pred = np.mean(fold_result, axis=0)
         model_result.append(final_pred)
+        if folder_model == '9344':
+            model_result.append(final_pred)
 
     model_result = np.mean(model_result, axis=0)
     y_pred = p.inverse_transform(model_result, lengths)
